@@ -758,26 +758,16 @@ body::before {
     <input type="text" id="workerUrlInput" placeholder="https://your-worker.workers.dev" />
   </div>
   <div class="settings-field">
-    <label>Groq API Key (voice transcription)</label>
-    <div style="position:relative;">
-      <input type="password" id="groqKeyInput" placeholder="gsk_..." style="width:100%;padding-right:60px;" oninput="document.getElementById('groqKeyHint').textContent = this.value.length > 5 ? '···' + this.value.slice(-5) : ''" />
-      <span id="groqKeyHint" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);font-family:var(--mono);font-size:11px;color:var(--accent);pointer-events:none;"></span>
-    </div>
-  </div>
-  <div class="settings-field">
     <label>Gemini API Key (categorisation)</label>
     <div style="position:relative;">
       <input type="password" id="geminiKeyInput" placeholder="AIza..." style="width:100%;padding-right:60px;" oninput="document.getElementById('geminiKeyHint').textContent = this.value.length > 5 ? '···' + this.value.slice(-5) : ''" />
       <span id="geminiKeyHint" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);font-family:var(--mono);font-size:11px;color:var(--accent);pointer-events:none;"></span>
     </div>
   </div>
-  <div style="display:flex;gap:8px;margin-bottom:0;">
-    <button class="save-btn" onclick="saveSettings()" style="flex:2;">Save Settings</button>
-    <button class="save-btn" onclick="testGroqKey()" style="flex:1;background:var(--surface2);color:var(--text);">Test Groq</button>
-  </div>
+  <button class="save-btn" onclick="saveSettings()">Save Settings</button>
   <div style="margin-top:16px; padding-top:16px; border-top:1px solid var(--border); display:flex; justify-content:space-between; align-items:center;">
-    <button onclick="openChangelog()" style="font-size:10px; font-family:var(--mono); color:var(--accent); background:none; border:none; cursor:pointer; padding:0; text-decoration:underline;" id="versionBtn">v1.5.1</button>
-    <span style="font-size:10px; font-family:var(--mono); color:var(--muted);">Updated 2026-04-02 03:30 BST</span>
+    <button onclick="openChangelog()" style="font-size:10px; font-family:var(--mono); color:var(--accent); background:none; border:none; cursor:pointer; padding:0; text-decoration:underline;" id="versionBtn">v1.6.0</button>
+    <span style="font-size:10px; font-family:var(--mono); color:var(--muted);">Updated 2026-04-02 04:00 BST</span>
   </div>
 </div>
 
@@ -905,10 +895,9 @@ body::before {
 // ─── CONFIG ───────────────────────────────────────────────────
 const DEFAULT_WORKER = "https://rapid-frost-ae90.lgt-c0c.workers.dev";
 const DEFAULT_GEMINI = "";  // Set in Settings panel
-const DEFAULT_GROQ = ["gsk_Bq1SDHJASmGwnxb","vIVNtWGdyb3FYu8RiBu16aRPhf0f91rBlrtM4"].join("");
 
-const VERSION = "1.5.1";
-const UPDATED = "2026-04-02 03:00 BST";
+const VERSION = "1.6.0";
+const UPDATED = "2026-04-02 04:00 BST";
 
 const CHANGELOG = [
   { v: "1.5.0", date: "2026-04-02", notes: ["Show last 5 chars of API keys in settings so you can verify the right key is saved", "Fixed Groq invalid API key issue — key now read correctly from localStorage", "Version number corrected to match actual build"] },
@@ -961,7 +950,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Load saved settings into inputs
   document.getElementById("workerUrlInput").value = localStorage.getItem("workerUrl") || DEFAULT_WORKER;
-  setKeyField("groqKeyInput",   "groqKeyHint",   localStorage.getItem("groqKey")   || DEFAULT_GROQ);
   setKeyField("geminiKeyInput", "geminiKeyHint", localStorage.getItem("geminiKey") || DEFAULT_GEMINI);
 });
 
@@ -1155,7 +1143,6 @@ async function processVoice() {
   document.getElementById("transcriptText").textContent = "Transcribing with Groq…";
   document.getElementById("processingIndicator").style.display = "flex";
 
-  const groqKey   = localStorage.getItem("groqKey")   || DEFAULT_GROQ;
   const geminiKey = localStorage.getItem("geminiKey") || DEFAULT_GEMINI;
   const categories = Object.keys(CAT_COLORS).join(", ");
 
@@ -1170,18 +1157,12 @@ async function processVoice() {
     formData.append("response_format", "text");
     formData.append("language", "en");
 
-    console.log("Using Groq key ending:", groqKey.slice(-5));
-    if (!groqKey) {
-      document.getElementById("transcriptText").textContent = "No Groq key set — open Settings and add your Groq API key";
-      document.getElementById("processingIndicator").style.display = "none";
-      showToast("No Groq key — check Settings", "error");
-      resetRecordBtn();
-      return;
-    }
-    const groqRes = await fetch("https://api.groq.com/openai/v1/audio/transcriptions", {
-      method: "POST",
-      headers: { "Authorization": "Bearer " + groqKey },
-      body: formData
+    // Route through Cloudflare Worker to avoid CORS
+    const workerUrl = localStorage.getItem("workerUrl") || DEFAULT_WORKER;
+    const groqRes   = await fetch(workerUrl, {
+      method:  "POST",
+      headers: { "X-Action": "transcribe" },
+      body:    formData
     });
 
     if (!groqRes.ok) {
@@ -1341,7 +1322,6 @@ function setKeyField(inputId, hintId, value) {
 
 function openSettings() {
   // Refresh hints when opening
-  setKeyField("groqKeyInput",   "groqKeyHint",   localStorage.getItem("groqKey")   || DEFAULT_GROQ);
   setKeyField("geminiKeyInput", "geminiKeyHint", localStorage.getItem("geminiKey") || DEFAULT_GEMINI);
   document.getElementById("settingsOverlay").classList.add("open");
   document.getElementById("settingsPanel").classList.add("open");
@@ -1354,40 +1334,11 @@ function closeSettings() {
 
 function saveSettings() {
   const w  = document.getElementById("workerUrlInput").value.trim();
-  const gr = document.getElementById("groqKeyInput").value.trim();
   const g  = document.getElementById("geminiKeyInput").value.trim();
   if (w)  { localStorage.setItem("workerUrl", w); }
-  if (gr) { localStorage.setItem("groqKey",   gr); setKeyField("groqKeyInput",   "groqKeyHint",   gr); }
   if (g)  { localStorage.setItem("geminiKey", g);  setKeyField("geminiKeyInput", "geminiKeyHint", g); cachedGeminiModel = null; }
   closeSettings();
   showToast("Settings saved", "success");
-}
-
-// ─── TEST GROQ KEY ────────────────────────────────────────────
-async function testGroqKey() {
-  const key = document.getElementById("groqKeyInput").value.trim() || localStorage.getItem("groqKey") || "";
-  if (!key) { showToast("Enter a Groq key first", "error"); return; }
-  showToast("Testing Groq key…", "info");
-  try {
-    // Use a tiny silent audio blob to test auth
-    const silentBlob = new Blob([new Uint8Array(4)], { type: "audio/webm" });
-    const silentFile = new File([silentBlob], "test.webm", { type: "audio/webm" });
-    const fd = new FormData();
-    fd.append("file", silentFile);
-    fd.append("model", "whisper-large-v3-turbo");
-    fd.append("response_format", "text");
-    const res = await fetch("https://api.groq.com/openai/v1/audio/transcriptions", {
-      method: "POST",
-      headers: { "Authorization": "Bearer " + key },
-      body: fd
-    });
-    if (res.status === 401) { showToast("❌ Invalid Groq key", "error"); return; }
-    if (res.status === 400) { showToast("✅ Groq key valid!", "success"); return; } // 400 = bad audio but auth passed
-    if (res.ok)             { showToast("✅ Groq key valid!", "success"); return; }
-    showToast("Groq responded: " + res.status, "info");
-  } catch(e) {
-    showToast("Network error: " + e.message, "error");
-  }
 }
 
 // ─── CHANGELOG ────────────────────────────────────────────────
