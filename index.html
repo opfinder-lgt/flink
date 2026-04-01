@@ -1060,21 +1060,24 @@ function stopRecording() {
 }
 
 async function processVoice() {
-  const blob    = new Blob(audioChunks, { type: "audio/webm" });
-  const b64data = await blobToBase64(blob);
-  const base64  = b64data.split(",")[1];
+  // Detect actual mime type from recorder
+  const mimeType = mediaRecorder?.mimeType || "audio/webm";
+  const blob     = new Blob(audioChunks, { type: mimeType });
+  const b64data  = await blobToBase64(blob);
+  const base64   = b64data.split(",")[1];
 
   // Show transcript box with loader
   const tbox = document.getElementById("transcriptBox");
   tbox.classList.add("visible");
-  document.getElementById("transcriptText").textContent = "";
+  document.getElementById("transcriptText").textContent = "Transcribing…";
   document.getElementById("processingIndicator").style.display = "flex";
 
   const key = localStorage.getItem("geminiKey") || DEFAULT_GEMINI;
+  const categories = Object.keys(CAT_COLORS).join(", ");
 
   try {
-    // Step 1: Transcribe
-    const transcribeRes = await fetch(
+    // Single call: transcribe + categorise at once
+    const res = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${key}`,
       {
         method: "POST",
@@ -1082,60 +1085,69 @@ async function processVoice() {
         body: JSON.stringify({
           contents: [{
             parts: [
-              { inline_data: { mime_type: "audio/webm", data: base64 } },
-              { text: "Transcribe this voice message exactly. Return only the transcription, nothing else." }
-            ]
-          }]
-        })
-      }
-    );
+              { inline_data: { mime_type: mimeType, data: base64 } },
+              { text: `You are a personal task assistant for Greg in London.
 
-    const transcribeData = await transcribeRes.json();
-    const transcript     = transcribeData.candidates?.[0]?.content?.parts?.[0]?.text || "";
-    document.getElementById("transcriptText").textContent = transcript;
-
-    // Step 2: Categorise + split tasks
-    document.getElementById("processingIndicator").style.display = "flex";
-
-    const categories = Object.keys(CAT_COLORS).join(", ");
-    const categoriseRes = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${key}`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          contents: [{
-            parts: [{
-              text: `You are a personal task assistant for Greg, who lives in London and works in cybersecurity sales.
-
-Extract ALL individual tasks from this text and categorise each one.
+Do two things:
+1. Transcribe the audio
+2. Extract every individual task mentioned and categorise each one
 
 Available categories: ${categories}
 
 Rules:
 - Split compound sentences into individual tasks
-- If unsure of category, use "Braindump"  
-- Detect board: if the text mentions "today" → board = "today", otherwise → board = "backlog"
-- Return ONLY valid JSON, no markdown, no explanation
+- If unsure of category, use "Braindump"
+- Detect board: if audio mentions "today" → board = "today", otherwise → board = "backlog"
+- Return ONLY valid JSON, absolutely no markdown fences, no explanation, nothing else
 
-Return this exact format:
-{"board":"backlog","tasks":[{"title":"task title","category":"Category Name"}]}`
-            }, {
-              text: transcript
-            }]
-          }]
+Exact format:
+{"transcript":"full transcription here","board":"backlog","tasks":[{"title":"task title","category":"Category Name"}]}` }
+            ]
+          }],
+          generationConfig: { temperature: 0.1 }
         })
       }
     );
 
-    const catData = await categoriseRes.json();
-    let raw       = catData.candidates?.[0]?.content?.parts?.[0]?.text || "{}";
-    raw = raw.replace(/```json|```/g, "").trim();
+    const data = await res.json();
 
-    const parsed = JSON.parse(raw);
-    const board  = parsed.board || "backlog";
-    const tasks  = parsed.tasks || [];
+    // Debug: show raw response in transcript box temporarily
+    const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text || "";
+    console.log("Gemini raw:", rawText);
 
+    if (!rawText) {
+      const errMsg = data.error?.message || JSON.stringify(data);
+      document.getElementById("transcriptText").textContent = "Gemini error: " + errMsg;
+      document.getElementById("processingIndicator").style.display = "none";
+      showToast("Gemini error — see transcript box", "error");
+      resetRecordBtn();
+      return;
+    }
+
+    // Robust JSON extraction
+    let jsonStr = rawText.trim();
+    // Strip markdown fences if present
+    jsonStr = jsonStr.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, "").trim();
+    // Extract JSON object if there's surrounding text
+    const jsonMatch = jsonStr.match(/\{[\s\S]*\}/);
+    if (jsonMatch) jsonStr = jsonMatch[0];
+
+    let parsed;
+    try {
+      parsed = JSON.parse(jsonStr);
+    } catch(e) {
+      document.getElementById("transcriptText").textContent = "Parse error. Raw: " + rawText;
+      document.getElementById("processingIndicator").style.display = "none";
+      showToast("Could not parse Gemini response", "error");
+      resetRecordBtn();
+      return;
+    }
+
+    const transcript = parsed.transcript || "";
+    const board      = parsed.board || "backlog";
+    const tasks      = parsed.tasks || [];
+
+    document.getElementById("transcriptText").textContent = transcript || "(no transcript)";
     document.getElementById("processingIndicator").style.display = "none";
 
     if (!tasks.length) {
