@@ -766,8 +766,8 @@ body::before {
   </div>
   <button class="save-btn" onclick="saveSettings()">Save Settings</button>
   <div style="margin-top:16px; padding-top:16px; border-top:1px solid var(--border); display:flex; justify-content:space-between; align-items:center;">
-    <button onclick="openChangelog()" style="font-size:10px; font-family:var(--mono); color:var(--accent); background:none; border:none; cursor:pointer; padding:0; text-decoration:underline;" id="versionBtn">v1.6.0</button>
-    <span style="font-size:10px; font-family:var(--mono); color:var(--muted);">Updated 2026-04-02 04:00 BST</span>
+    <button onclick="openChangelog()" style="font-size:10px; font-family:var(--mono); color:var(--accent); background:none; border:none; cursor:pointer; padding:0; text-decoration:underline;" id="versionBtn">v1.7.0</button>
+    <span style="font-size:10px; font-family:var(--mono); color:var(--muted);">Updated 2026-04-02 05:00 BST</span>
   </div>
 </div>
 
@@ -845,7 +845,7 @@ body::before {
   <div id="voice-mode">
     <div class="voice-container">
       <div class="voice-title">Voice Capture</div>
-      <div class="voice-subtitle">Dump everything on your mind. <strong>Gemini will transcribe, split and categorise</strong> each task automatically.</div>
+      <div class="voice-subtitle">Dump everything on your mind. <strong>Speak naturally</strong> — browser transcribes live, Gemini categorises automatically.</div>
 
       <button class="record-btn" id="recordBtn" onclick="toggleRecord()">
         <div class="record-inner">
@@ -896,7 +896,7 @@ body::before {
 const DEFAULT_WORKER = "https://rapid-frost-ae90.lgt-c0c.workers.dev";
 const DEFAULT_GEMINI = "";  // Set in Settings panel
 
-const VERSION = "1.6.0";
+const VERSION = "1.7.0";
 const UPDATED = "2026-04-02 04:00 BST";
 
 const CHANGELOG = [
@@ -933,8 +933,6 @@ const QUOTES = [
 let currentBoard   = "backlog";
 let currentMode    = "text";
 let isRecording    = false;
-let mediaRecorder  = null;
-let audioChunks    = [];
 let workerUrl      = localStorage.getItem("workerUrl")  || DEFAULT_WORKER;
 let geminiKey      = localStorage.getItem("geminiKey")  || DEFAULT_GEMINI;
 
@@ -1085,46 +1083,82 @@ async function postToBlitzit(title, category, board = "backlog") {
   return res;
 }
 
-// ─── VOICE RECORDING ──────────────────────────────────────────
-async function toggleRecord() {
+// ─── VOICE RECORDING (Web Speech API) ────────────────────────
+let recognition = null;
+
+function toggleRecord() {
   if (isRecording) {
     stopRecording();
   } else {
-    await startRecording();
+    startRecording();
   }
 }
 
-async function startRecording() {
-  try {
-    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-    audioChunks  = [];
-    mediaRecorder = new MediaRecorder(stream);
-    mediaRecorder.ondataavailable = e => { if (e.data.size > 0) audioChunks.push(e.data); };
-    mediaRecorder.onstop = processVoice;
-    mediaRecorder.start();
-    isRecording = true;
+function startRecording() {
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SpeechRecognition) {
+    showToast("Voice not supported — use Chrome or Safari", "error");
+    return;
+  }
 
+  recognition = new SpeechRecognition();
+  recognition.continuous     = true;
+  recognition.interimResults = true;
+  recognition.lang           = "en-GB";
+
+  let finalTranscript = "";
+
+  recognition.onstart = () => {
+    isRecording = true;
     const btn   = document.getElementById("recordBtn");
     const icon  = document.getElementById("recordIcon");
     const label = document.getElementById("recordLabel");
     btn.classList.add("recording");
     icon.textContent  = "⏹";
-    label.textContent = "recording…";
-
-    // Reset summary
+    label.textContent = "listening…";
     document.getElementById("voiceSummary").classList.remove("visible");
     document.getElementById("transcriptBox").classList.remove("visible");
     document.getElementById("summaryItems").innerHTML = "";
-  } catch (err) {
-    showToast("Microphone access denied", "error");
-  }
+  };
+
+  recognition.onresult = (event) => {
+    let interim = "";
+    finalTranscript = "";
+    for (let i = 0; i < event.results.length; i++) {
+      if (event.results[i].isFinal) {
+        finalTranscript += event.results[i][0].transcript + " ";
+      } else {
+        interim += event.results[i][0].transcript;
+      }
+    }
+    // Show live transcript
+    const tbox = document.getElementById("transcriptBox");
+    tbox.classList.add("visible");
+    document.getElementById("transcriptText").textContent = (finalTranscript + interim).trim() || "Listening…";
+  };
+
+  recognition.onerror = (event) => {
+    showToast("Mic error: " + event.error, "error");
+    resetRecordBtn();
+    isRecording = false;
+  };
+
+  recognition.onend = () => {
+    isRecording = false;
+    resetRecordBtn();
+    const transcript = finalTranscript.trim();
+    if (transcript) {
+      processTranscript(transcript);
+    } else {
+      showToast("No speech detected", "info");
+    }
+  };
+
+  recognition.start();
 }
 
 function stopRecording() {
-  if (mediaRecorder && mediaRecorder.state !== "inactive") {
-    mediaRecorder.stop();
-    mediaRecorder.stream.getTracks().forEach(t => t.stop());
-  }
+  if (recognition) recognition.stop();
   isRecording = false;
   const btn   = document.getElementById("recordBtn");
   const icon  = document.getElementById("recordIcon");
@@ -1134,65 +1168,20 @@ function stopRecording() {
   label.textContent = "processing…";
 }
 
-async function processVoice() {
-  const mimeType = mediaRecorder?.mimeType || "audio/webm";
-  const blob     = new Blob(audioChunks, { type: mimeType });
-
-  const tbox = document.getElementById("transcriptBox");
-  tbox.classList.add("visible");
-  document.getElementById("transcriptText").textContent = "Transcribing with Groq…";
-  document.getElementById("processingIndicator").style.display = "flex";
-
-  const geminiKey = localStorage.getItem("geminiKey") || DEFAULT_GEMINI;
+async function processTranscript(transcript) {
+  const geminiKey  = localStorage.getItem("geminiKey") || DEFAULT_GEMINI;
   const categories = Object.keys(CAT_COLORS).join(", ");
 
+  document.getElementById("transcriptText").textContent = transcript;
+  document.getElementById("processingIndicator").style.display = "flex";
+
   try {
-    // ── STEP 1: Groq Whisper transcription ──
-    // Ensure correct mime type and filename for Groq
-    const audioBlob = new Blob(audioChunks, { type: "audio/webm" });
-    const audioFile = new File([audioBlob], "recording.webm", { type: "audio/webm" });
-    const formData  = new FormData();
-    formData.append("file", audioFile);
-    formData.append("model", "whisper-large-v3-turbo");
-    formData.append("response_format", "text");
-    formData.append("language", "en");
-
-    // Route through Cloudflare Worker to avoid CORS
-    const workerUrl = localStorage.getItem("workerUrl") || DEFAULT_WORKER;
-    const groqRes   = await fetch(workerUrl, {
-      method:  "POST",
-      headers: { "X-Action": "transcribe" },
-      body:    formData
-    });
-
-    if (!groqRes.ok) {
-      const err = await groqRes.text();
-      document.getElementById("transcriptText").textContent = "Groq error: " + err;
-      document.getElementById("processingIndicator").style.display = "none";
-      showToast("Groq transcription failed", "error");
-      resetRecordBtn();
-      return;
-    }
-
-    const transcript = (await groqRes.text()).trim();
-    document.getElementById("transcriptText").textContent = transcript || "(no speech detected)";
-
-    if (!transcript) {
-      document.getElementById("processingIndicator").style.display = "none";
-      showToast("No speech detected", "info");
-      resetRecordBtn();
-      return;
-    }
-
-    // ── STEP 2: Gemini text-only categorisation ──
-    document.getElementById("processingIndicator").style.display = "flex";
     const model = await getGeminiModel(geminiKey);
-
-    const geminiRes = await fetch(geminiUrl(model, geminiKey), {
-      method: "POST",
+    const res   = await fetch(geminiUrl(model, geminiKey), {
+      method:  "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        contents: [{ parts: [{ text: `You are a personal task assistant for Greg in London.
+        contents: [{ parts: [{ text: `You are Greg's personal task assistant in London.
 
 Extract every individual task from this text and categorise each one.
 
@@ -1200,8 +1189,8 @@ Available categories: ${categories}
 
 Rules:
 - Split compound sentences into individual tasks
-- If unsure of category, use "Braindump"
-- Detect board: if text mentions "today" use "today", otherwise "backlog"
+- If unsure of category use "Braindump"
+- If text mentions "today" use board "today", otherwise "backlog"
 - Return ONLY valid JSON, no markdown, no explanation
 
 Format: {"board":"backlog","tasks":[{"title":"task title","category":"Category Name"}]}
@@ -1211,28 +1200,25 @@ Text: ${transcript}` }] }],
       })
     });
 
-    const geminiData = await geminiRes.json();
-    const rawText    = geminiData.candidates?.[0]?.content?.parts?.[0]?.text || "";
-    console.log("Gemini raw:", rawText);
+    const data    = await res.json();
+    const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text || "";
 
     if (!rawText) {
-      const errMsg = geminiData.error?.message || JSON.stringify(geminiData);
+      const errMsg = data.error?.message || JSON.stringify(data);
       document.getElementById("processingIndicator").style.display = "none";
-      showToast("Gemini error: " + errMsg.slice(0,80), "error");
-      resetRecordBtn();
+      showToast("Gemini error: " + errMsg.slice(0,60), "error");
       return;
     }
 
     let jsonStr = rawText.trim().replace(/^```(?:json)?\s*/i,"").replace(/\s*```$/,"").trim();
-    const jsonMatch = jsonStr.match(/\{[\s\S]*\}/);
-    if (jsonMatch) jsonStr = jsonMatch[0];
+    const match = jsonStr.match(/\{[\s\S]*\}/);
+    if (match) jsonStr = match[0];
 
     let parsed;
     try { parsed = JSON.parse(jsonStr); }
     catch(e) {
       document.getElementById("processingIndicator").style.display = "none";
-      showToast("Could not parse Gemini response", "error");
-      resetRecordBtn();
+      showToast("Could not parse response", "error");
       return;
     }
 
@@ -1240,57 +1226,41 @@ Text: ${transcript}` }] }],
     const tasks = parsed.tasks || [];
     document.getElementById("processingIndicator").style.display = "none";
 
-    if (!tasks.length) {
-      showToast("No tasks detected", "info");
-      resetRecordBtn();
-      return;
-    }
+    if (!tasks.length) { showToast("No tasks detected", "info"); return; }
 
-    // Step 3: Fire all tasks to Blitzit
+    // Fire all to Blitzit
     const results  = [];
-    const promises = tasks.map(async t => {
+    await Promise.all(tasks.map(async t => {
       try {
         await postToBlitzit(t.title, t.category, board);
-        results.push({ ...t, board, ok: true });
+        results.push({ ...t, ok: true });
       } catch {
-        results.push({ ...t, board, ok: false });
+        results.push({ ...t, ok: false });
       }
-    });
-
-    await Promise.all(promises);
+    }));
 
     // Show summary
     const summaryEl = document.getElementById("voiceSummary");
     const itemsEl   = document.getElementById("summaryItems");
     itemsEl.innerHTML = "";
-
     results.forEach(r => {
-      const div = document.createElement("div");
+      const div   = document.createElement("div");
       div.className = "summary-item";
       const color = CAT_COLORS[r.category] || "#94a3b8";
-      div.innerHTML = `
-        <div class="summary-dot" style="background:${color}"></div>
-        <div class="summary-task">${r.title}</div>
-        <div class="summary-cat">${r.category}</div>
-        <div class="summary-status">${r.ok ? "✓" : "✗"}</div>
-      `;
+      div.innerHTML = `<div class="summary-dot" style="background:${color}"></div><div class="summary-task">${r.title}</div><div class="summary-cat">${r.category}</div><div class="summary-status">${r.ok ? "✓" : "✗"}</div>`;
       itemsEl.appendChild(div);
     });
-
     summaryEl.classList.add("visible");
 
-    const ok    = results.filter(r => r.ok).length;
-    const total = results.length;
-    document.getElementById("lastTask").textContent = `${ok}/${total} tasks sent via voice`;
+    const ok = results.filter(r => r.ok).length;
+    document.getElementById("lastTask").textContent = `${ok}/${results.length} tasks sent via voice`;
     showToast(`✓ ${ok} task${ok !== 1 ? "s" : ""} sent`, "success");
 
-  } catch (err) {
+  } catch(err) {
     console.error(err);
     document.getElementById("processingIndicator").style.display = "none";
-    showToast("Gemini error — check API key", "error");
+    showToast("Error: " + err.message, "error");
   }
-
-  resetRecordBtn();
 }
 
 function resetRecordBtn() {
@@ -1298,14 +1268,6 @@ function resetRecordBtn() {
   document.getElementById("recordLabel").textContent = "tap to record";
 }
 
-function blobToBase64(blob) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload  = () => resolve(reader.result);
-    reader.onerror = reject;
-    reader.readAsDataURL(blob);
-  });
-}
 
 // ─── SETTINGS ─────────────────────────────────────────────────
 function setKeyField(inputId, hintId, value) {
