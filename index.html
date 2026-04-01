@@ -898,10 +898,11 @@ const DEFAULT_WORKER = "https://rapid-frost-ae90.lgt-c0c.workers.dev";
 const DEFAULT_GEMINI = "";  // Set in Settings panel
 const DEFAULT_GROQ   = "";  // Set in Settings panel
 
-const VERSION = "1.4.0";
-const UPDATED = "2026-04-02 01:30 BST";
+const VERSION = "1.4.1";
+const UPDATED = "2026-04-02 02:00 BST";
 
 const CHANGELOG = [
+  { v: "1.4.1", date: "2026-04-02", notes: ["Fixed Groq audio file format — explicit File object with correct mime type", "Removed hardcoded API keys from source code"] },
   { v: "1.4.0", date: "2026-04-02", notes: ["Switched to Groq (Whisper) for voice transcription — faster and reliable", "Gemini now handles text-only categorisation (no audio quota issues)", "Added Groq API key field to settings", "Clickable version number with changelog popup", "Fixed settings timestamp"] },
   { v: "1.3.0", date: "2026-04-02", notes: ["Auto-detect Gemini model via ListModels", "Combined transcription + categorisation into single Gemini call", "Debug output in transcript box on errors"] },
   { v: "1.2.0", date: "2026-04-02", notes: ["All 13 Blitzit webhooks wired up via Cloudflare Worker", "Worker routes by category — secrets stay server-side", "Fixed CORS issue with proxy worker"] },
@@ -1150,10 +1151,14 @@ async function processVoice() {
 
   try {
     // ── STEP 1: Groq Whisper transcription ──
-    const formData = new FormData();
-    formData.append("file", blob, "recording.webm");
+    // Ensure correct mime type and filename for Groq
+    const audioBlob = new Blob(audioChunks, { type: "audio/webm" });
+    const audioFile = new File([audioBlob], "recording.webm", { type: "audio/webm" });
+    const formData  = new FormData();
+    formData.append("file", audioFile);
     formData.append("model", "whisper-large-v3-turbo");
     formData.append("response_format", "text");
+    formData.append("language", "en");
 
     const groqRes = await fetch("https://api.groq.com/openai/v1/audio/transcriptions", {
       method: "POST",
