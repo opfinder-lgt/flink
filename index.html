@@ -771,10 +771,13 @@ body::before {
       <span id="geminiKeyHint" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);font-family:var(--mono);font-size:11px;color:var(--accent);pointer-events:none;"></span>
     </div>
   </div>
-  <button class="save-btn" onclick="saveSettings()">Save Settings</button>
+  <div style="display:flex;gap:8px;margin-bottom:0;">
+    <button class="save-btn" onclick="saveSettings()" style="flex:2;">Save Settings</button>
+    <button class="save-btn" onclick="testGroqKey()" style="flex:1;background:var(--surface2);color:var(--text);">Test Groq</button>
+  </div>
   <div style="margin-top:16px; padding-top:16px; border-top:1px solid var(--border); display:flex; justify-content:space-between; align-items:center;">
     <button onclick="openChangelog()" style="font-size:10px; font-family:var(--mono); color:var(--accent); background:none; border:none; cursor:pointer; padding:0; text-decoration:underline;" id="versionBtn">v1.5.0</button>
-    <span style="font-size:10px; font-family:var(--mono); color:var(--muted);">Updated 2026-04-02 02:30 BST</span>
+    <span style="font-size:10px; font-family:var(--mono); color:var(--muted);">Updated 2026-04-02 03:00 BST</span>
   </div>
 </div>
 
@@ -905,7 +908,7 @@ const DEFAULT_GEMINI = "";  // Set in Settings panel
 const DEFAULT_GROQ   = "";  // Set in Settings panel
 
 const VERSION = "1.5.0";
-const UPDATED = "2026-04-02 02:30 BST";
+const UPDATED = "2026-04-02 03:00 BST";
 
 const CHANGELOG = [
   { v: "1.5.0", date: "2026-04-02", notes: ["Show last 5 chars of API keys in settings so you can verify the right key is saved", "Fixed Groq invalid API key issue — key now read correctly from localStorage", "Version number corrected to match actual build"] },
@@ -1167,6 +1170,14 @@ async function processVoice() {
     formData.append("response_format", "text");
     formData.append("language", "en");
 
+    console.log("Using Groq key ending:", groqKey.slice(-5));
+    if (!groqKey) {
+      document.getElementById("transcriptText").textContent = "No Groq key set — open Settings and add your Groq API key";
+      document.getElementById("processingIndicator").style.display = "none";
+      showToast("No Groq key — check Settings", "error");
+      resetRecordBtn();
+      return;
+    }
     const groqRes = await fetch("https://api.groq.com/openai/v1/audio/transcriptions", {
       method: "POST",
       headers: { "Authorization": "Bearer " + groqKey },
@@ -1350,6 +1361,33 @@ function saveSettings() {
   if (g)  { localStorage.setItem("geminiKey", g);  setKeyField("geminiKeyInput", "geminiKeyHint", g); cachedGeminiModel = null; }
   closeSettings();
   showToast("Settings saved", "success");
+}
+
+// ─── TEST GROQ KEY ────────────────────────────────────────────
+async function testGroqKey() {
+  const key = document.getElementById("groqKeyInput").value.trim() || localStorage.getItem("groqKey") || "";
+  if (!key) { showToast("Enter a Groq key first", "error"); return; }
+  showToast("Testing Groq key…", "info");
+  try {
+    // Use a tiny silent audio blob to test auth
+    const silentBlob = new Blob([new Uint8Array(4)], { type: "audio/webm" });
+    const silentFile = new File([silentBlob], "test.webm", { type: "audio/webm" });
+    const fd = new FormData();
+    fd.append("file", silentFile);
+    fd.append("model", "whisper-large-v3-turbo");
+    fd.append("response_format", "text");
+    const res = await fetch("https://api.groq.com/openai/v1/audio/transcriptions", {
+      method: "POST",
+      headers: { "Authorization": "Bearer " + key },
+      body: fd
+    });
+    if (res.status === 401) { showToast("❌ Invalid Groq key", "error"); return; }
+    if (res.status === 400) { showToast("✅ Groq key valid!", "success"); return; } // 400 = bad audio but auth passed
+    if (res.ok)             { showToast("✅ Groq key valid!", "success"); return; }
+    showToast("Groq responded: " + res.status, "info");
+  } catch(e) {
+    showToast("Network error: " + e.message, "error");
+  }
 }
 
 // ─── CHANGELOG ────────────────────────────────────────────────
