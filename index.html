@@ -758,14 +758,28 @@ body::before {
     <input type="text" id="workerUrlInput" placeholder="https://your-worker.workers.dev" />
   </div>
   <div class="settings-field">
-    <label>Gemini API Key</label>
+    <label>Groq API Key (voice transcription)</label>
+    <input type="password" id="groqKeyInput" placeholder="gsk_..." />
+  </div>
+  <div class="settings-field">
+    <label>Gemini API Key (categorisation)</label>
     <input type="password" id="geminiKeyInput" placeholder="AIza..." />
   </div>
   <button class="save-btn" onclick="saveSettings()">Save Settings</button>
   <div style="margin-top:16px; padding-top:16px; border-top:1px solid var(--border); display:flex; justify-content:space-between; align-items:center;">
-    <span style="font-size:10px; font-family:var(--mono); color:var(--muted);">v1.3.0</span>
-    <span style="font-size:10px; font-family:var(--mono); color:var(--muted);">Updated 2026-04-01 23:00</span>
+    <button onclick="openChangelog()" style="font-size:10px; font-family:var(--mono); color:var(--accent); background:none; border:none; cursor:pointer; padding:0; text-decoration:underline;" id="versionBtn">v1.4.0</button>
+    <span style="font-size:10px; font-family:var(--mono); color:var(--muted);">Updated 2026-04-02 01:30 BST</span>
   </div>
+</div>
+
+<!-- CHANGELOG MODAL -->
+<div class="settings-overlay" id="changelogOverlay" onclick="closeChangelog()" style="display:none;z-index:850;"></div>
+<div id="changelogPanel" style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:var(--bg2);border:1px solid var(--border);border-radius:20px;padding:28px;width:min(480px,92vw);z-index:950;max-height:80vh;overflow-y:auto;">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+    <h3 style="font-size:15px;font-weight:700;">📋 Changelog</h3>
+    <button onclick="closeChangelog()" style="width:28px;height:28px;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--muted);cursor:pointer;font-size:14px;">✕</button>
+  </div>
+  <div id="changelogContent"></div>
 </div>
 
 <!-- APP -->
@@ -881,7 +895,19 @@ body::before {
 <script>
 // ─── CONFIG ───────────────────────────────────────────────────
 const DEFAULT_WORKER = "https://rapid-frost-ae90.lgt-c0c.workers.dev";
-const DEFAULT_GEMINI = "AIzaSyAOUzrDECA7r_LlUiW1Ev9WgpWBObJXp2o";
+const DEFAULT_GEMINI = "";  // Set in Settings panel
+const DEFAULT_GROQ   = "";  // Set in Settings panel
+
+const VERSION = "1.4.0";
+const UPDATED = "2026-04-02 01:30 BST";
+
+const CHANGELOG = [
+  { v: "1.4.0", date: "2026-04-02", notes: ["Switched to Groq (Whisper) for voice transcription — faster and reliable", "Gemini now handles text-only categorisation (no audio quota issues)", "Added Groq API key field to settings", "Clickable version number with changelog popup", "Fixed settings timestamp"] },
+  { v: "1.3.0", date: "2026-04-02", notes: ["Auto-detect Gemini model via ListModels", "Combined transcription + categorisation into single Gemini call", "Debug output in transcript box on errors"] },
+  { v: "1.2.0", date: "2026-04-02", notes: ["All 13 Blitzit webhooks wired up via Cloudflare Worker", "Worker routes by category — secrets stay server-side", "Fixed CORS issue with proxy worker"] },
+  { v: "1.1.0", date: "2026-04-01", notes: ["Voice mode with Gemini audio transcription", "Dual mode: Text (desktop default) + Voice (mobile default)", "Mode toggle top right"] },
+  { v: "1.0.0", date: "2026-04-01", notes: ["Initial build — text mode with 13 category buttons", "Cloudflare Worker proxy", "Board selector: Backlog / Today / This Week", "Status bar with clocks and last task"] },
+];
 
 // Category colours for summary dots
 const CAT_COLORS = {
@@ -923,8 +949,9 @@ document.addEventListener("DOMContentLoaded", () => {
   if (window.innerWidth <= 600) setMode("voice");
 
   // Load saved settings into inputs
-  document.getElementById("workerUrlInput").value = workerUrl;
-  document.getElementById("geminiKeyInput").value = geminiKey;
+  document.getElementById("workerUrlInput").value = localStorage.getItem("workerUrl")  || DEFAULT_WORKER;
+  document.getElementById("groqKeyInput").value   = localStorage.getItem("groqKey")    || DEFAULT_GROQ;
+  document.getElementById("geminiKeyInput").value = localStorage.getItem("geminiKey")  || DEFAULT_GEMINI;
 });
 
 // ─── GEMINI MODEL AUTO-DETECT ─────────────────────────────────
@@ -1109,98 +1136,104 @@ function stopRecording() {
 }
 
 async function processVoice() {
-  // Detect actual mime type from recorder
   const mimeType = mediaRecorder?.mimeType || "audio/webm";
   const blob     = new Blob(audioChunks, { type: mimeType });
-  const b64data  = await blobToBase64(blob);
-  const base64   = b64data.split(",")[1];
 
-  // Show transcript box with loader
   const tbox = document.getElementById("transcriptBox");
   tbox.classList.add("visible");
-  document.getElementById("transcriptText").textContent = "Transcribing…";
+  document.getElementById("transcriptText").textContent = "Transcribing with Groq…";
   document.getElementById("processingIndicator").style.display = "flex";
 
-  const key = localStorage.getItem("geminiKey") || DEFAULT_GEMINI;
+  const groqKey   = localStorage.getItem("groqKey")   || DEFAULT_GROQ;
+  const geminiKey = localStorage.getItem("geminiKey") || DEFAULT_GEMINI;
   const categories = Object.keys(CAT_COLORS).join(", ");
 
   try {
-    // Auto-detect working Gemini model
-    const model = await getGeminiModel(key);
-    console.log("Using Gemini model:", model);
-    document.getElementById("transcriptText").textContent = `Using ${model}…`;
+    // ── STEP 1: Groq Whisper transcription ──
+    const formData = new FormData();
+    formData.append("file", blob, "recording.webm");
+    formData.append("model", "whisper-large-v3-turbo");
+    formData.append("response_format", "text");
 
-    // Single call: transcribe + categorise at once
-    const res = await fetch(geminiUrl(model, key),
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          contents: [{
-            parts: [
-              { inline_data: { mime_type: mimeType, data: base64 } },
-              { text: `You are a personal task assistant for Greg in London.
+    const groqRes = await fetch("https://api.groq.com/openai/v1/audio/transcriptions", {
+      method: "POST",
+      headers: { "Authorization": "Bearer " + groqKey },
+      body: formData
+    });
 
-Do two things:
-1. Transcribe the audio
-2. Extract every individual task mentioned and categorise each one
+    if (!groqRes.ok) {
+      const err = await groqRes.text();
+      document.getElementById("transcriptText").textContent = "Groq error: " + err;
+      document.getElementById("processingIndicator").style.display = "none";
+      showToast("Groq transcription failed", "error");
+      resetRecordBtn();
+      return;
+    }
+
+    const transcript = (await groqRes.text()).trim();
+    document.getElementById("transcriptText").textContent = transcript || "(no speech detected)";
+
+    if (!transcript) {
+      document.getElementById("processingIndicator").style.display = "none";
+      showToast("No speech detected", "info");
+      resetRecordBtn();
+      return;
+    }
+
+    // ── STEP 2: Gemini text-only categorisation ──
+    document.getElementById("processingIndicator").style.display = "flex";
+    const model = await getGeminiModel(geminiKey);
+
+    const geminiRes = await fetch(geminiUrl(model, geminiKey), {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: `You are a personal task assistant for Greg in London.
+
+Extract every individual task from this text and categorise each one.
 
 Available categories: ${categories}
 
 Rules:
 - Split compound sentences into individual tasks
 - If unsure of category, use "Braindump"
-- Detect board: if audio mentions "today" → board = "today", otherwise → board = "backlog"
-- Return ONLY valid JSON, absolutely no markdown fences, no explanation, nothing else
+- Detect board: if text mentions "today" use "today", otherwise "backlog"
+- Return ONLY valid JSON, no markdown, no explanation
 
-Exact format:
-{"transcript":"full transcription here","board":"backlog","tasks":[{"title":"task title","category":"Category Name"}]}` }
-            ]
-          }],
-          generationConfig: { temperature: 0.1 }
-        })
-      }
-    );
+Format: {"board":"backlog","tasks":[{"title":"task title","category":"Category Name"}]}
 
-    const data = await res.json();
+Text: ${transcript}` }] }],
+        generationConfig: { temperature: 0.1 }
+      })
+    });
 
-    // Debug: show raw response in transcript box temporarily
-    const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text || "";
+    const geminiData = await geminiRes.json();
+    const rawText    = geminiData.candidates?.[0]?.content?.parts?.[0]?.text || "";
     console.log("Gemini raw:", rawText);
 
     if (!rawText) {
-      const errMsg = data.error?.message || JSON.stringify(data);
-      document.getElementById("transcriptText").textContent = "Gemini error: " + errMsg;
+      const errMsg = geminiData.error?.message || JSON.stringify(geminiData);
       document.getElementById("processingIndicator").style.display = "none";
-      showToast("Gemini error — see transcript box", "error");
+      showToast("Gemini error: " + errMsg.slice(0,80), "error");
       resetRecordBtn();
       return;
     }
 
-    // Robust JSON extraction
-    let jsonStr = rawText.trim();
-    // Strip markdown fences if present
-    jsonStr = jsonStr.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, "").trim();
-    // Extract JSON object if there's surrounding text
+    let jsonStr = rawText.trim().replace(/^```(?:json)?\s*/i,"").replace(/\s*```$/,"").trim();
     const jsonMatch = jsonStr.match(/\{[\s\S]*\}/);
     if (jsonMatch) jsonStr = jsonMatch[0];
 
     let parsed;
-    try {
-      parsed = JSON.parse(jsonStr);
-    } catch(e) {
-      document.getElementById("transcriptText").textContent = "Parse error. Raw: " + rawText;
+    try { parsed = JSON.parse(jsonStr); }
+    catch(e) {
       document.getElementById("processingIndicator").style.display = "none";
       showToast("Could not parse Gemini response", "error");
       resetRecordBtn();
       return;
     }
 
-    const transcript = parsed.transcript || "";
-    const board      = parsed.board || "backlog";
-    const tasks      = parsed.tasks || [];
-
-    document.getElementById("transcriptText").textContent = transcript || "(no transcript)";
+    const board = parsed.board || "backlog";
+    const tasks = parsed.tasks || [];
     document.getElementById("processingIndicator").style.display = "none";
 
     if (!tasks.length) {
@@ -1282,12 +1315,40 @@ function closeSettings() {
 }
 
 function saveSettings() {
-  const w = document.getElementById("workerUrlInput").value.trim();
-  const g = document.getElementById("geminiKeyInput").value.trim();
-  if (w) { localStorage.setItem("workerUrl", w); workerUrl = w; }
-  if (g) { localStorage.setItem("geminiKey", g); geminiKey = g; cachedGeminiModel = null; }
+  const w  = document.getElementById("workerUrlInput").value.trim();
+  const gr = document.getElementById("groqKeyInput").value.trim();
+  const g  = document.getElementById("geminiKeyInput").value.trim();
+  if (w)  { localStorage.setItem("workerUrl", w); }
+  if (gr) { localStorage.setItem("groqKey",   gr); }
+  if (g)  { localStorage.setItem("geminiKey", g); cachedGeminiModel = null; }
   closeSettings();
   showToast("Settings saved", "success");
+}
+
+// ─── CHANGELOG ────────────────────────────────────────────────
+function openChangelog() {
+  const el = document.getElementById("changelogContent");
+  el.innerHTML = CHANGELOG.map(entry => `
+    <div style="margin-bottom:20px;">
+      <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:8px;">
+        <span style="font-size:13px;font-weight:700;font-family:var(--mono);color:var(--accent);">v${entry.v}</span>
+        <span style="font-size:10px;color:var(--muted);font-family:var(--mono);">${entry.date}</span>
+      </div>
+      <ul style="list-style:none;padding:0;margin:0;">
+        ${entry.notes.map(n => `<li style="font-size:12.5px;color:var(--text);padding:4px 0;padding-left:14px;position:relative;line-height:1.5;"><span style="position:absolute;left:0;color:var(--accent);">·</span>${n}</li>`).join("")}
+      </ul>
+    </div>
+  `).join('<div style="height:1px;background:var(--border);margin-bottom:20px;"></div>');
+
+  document.getElementById("changelogOverlay").style.display = "block";
+  document.getElementById("changelogPanel").style.display   = "block";
+  // Close settings first
+  closeSettings();
+}
+
+function closeChangelog() {
+  document.getElementById("changelogOverlay").style.display = "none";
+  document.getElementById("changelogPanel").style.display   = "none";
 }
 
 // ─── TOAST ────────────────────────────────────────────────────
