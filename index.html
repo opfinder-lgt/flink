@@ -1,0 +1,1242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Flink</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Syne+Mono&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:        #0e0f14;
+  --bg2:       #13141b;
+  --surface:   #1c1e28;
+  --surface2:  #242736;
+  --border:    rgba(255,255,255,0.07);
+  --text:      #f0f1f5;
+  --muted:     #5a5f78;
+  --muted2:    #3a3f58;
+  --accent:    #c8f135;
+  --accent2:   #8ff0a4;
+
+  --health:     #ff4d6d;
+  --invest:     #00c896;
+  --learning:   #ffb830;
+  --home:       #40d9a0;
+  --adminp:     #7c8cf8;
+  --admins:     #a78bfa;
+  --returns:    #fb923c;
+  --numeri:     #f87171;
+  --opfinder:   #38bdf8;
+  --tech:       #e879f9;
+  --residents:  #facc15;
+  --friends:    #f472b6;
+  --braindump:  #94a3b8;
+
+  --radius: 16px;
+  --font: 'Syne', sans-serif;
+  --mono: 'Syne Mono', monospace;
+}
+
+html, body {
+  height: 100%;
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--text);
+  overflow-x: hidden;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+/* NOISE OVERLAY */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 1000;
+  opacity: 0.4;
+}
+
+/* GLOW ORBS */
+.orb {
+  position: fixed;
+  border-radius: 50%;
+  filter: blur(80px);
+  pointer-events: none;
+  opacity: 0.12;
+}
+.orb-1 { width: 500px; height: 500px; background: #c8f135; top: -200px; right: -100px; }
+.orb-2 { width: 400px; height: 400px; background: #38bdf8; bottom: -150px; left: -100px; }
+
+/* MAIN LAYOUT */
+.app {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  max-width: 900px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 32px 24px 100px;
+  position: relative;
+  z-index: 1;
+}
+
+/* HEADER */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 36px;
+  animation: fadeDown 0.5s ease both;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.brand-logo {
+  width: 36px; height: 36px;
+  background: var(--accent);
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--bg);
+  letter-spacing: -1px;
+}
+
+.brand-name {
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  color: var(--text);
+}
+
+.brand-name span {
+  color: var(--accent);
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.mode-toggle {
+  display: flex;
+  background: var(--surface);
+  border-radius: 10px;
+  padding: 3px;
+  border: 1px solid var(--border);
+}
+
+.mode-btn {
+  padding: 6px 14px;
+  border-radius: 8px;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  font-family: var(--font);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  letter-spacing: 0.3px;
+}
+
+.mode-btn.active {
+  background: var(--surface2);
+  color: var(--text);
+}
+
+.icon-btn {
+  width: 36px; height: 36px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--muted);
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 15px;
+  transition: all 0.2s;
+}
+.icon-btn:hover { color: var(--text); border-color: var(--muted2); }
+
+/* GREETING */
+.greeting {
+  margin-bottom: 28px;
+  animation: fadeDown 0.5s 0.05s ease both;
+}
+
+.greeting-time {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 4px;
+  font-family: var(--mono);
+}
+
+.greeting-text {
+  font-size: clamp(22px, 4vw, 30px);
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: -0.5px;
+}
+
+.greeting-text .accent { color: var(--accent); }
+
+/* ===== TEXT MODE ===== */
+#text-mode { animation: fadeIn 0.3s ease both; }
+#voice-mode { display: none; animation: fadeIn 0.3s ease both; }
+
+/* BOARD SELECTOR */
+.board-wrap {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+  animation: fadeDown 0.5s 0.1s ease both;
+}
+
+.board-btn {
+  flex: 1;
+  padding: 9px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--muted);
+  font-family: var(--font);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.board-btn:hover { color: var(--text); }
+
+.board-btn.active {
+  background: var(--accent);
+  color: var(--bg);
+  border-color: var(--accent);
+}
+
+/* INPUT */
+.input-wrap {
+  position: relative;
+  margin-bottom: 24px;
+  animation: fadeDown 0.5s 0.15s ease both;
+}
+
+.task-input {
+  width: 100%;
+  padding: 18px 24px;
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 15px;
+  font-weight: 500;
+  outline: none;
+  transition: all 0.2s;
+  resize: none;
+  min-height: 58px;
+  line-height: 1.5;
+}
+
+.task-input::placeholder { color: var(--muted); }
+
+.task-input:focus {
+  border-color: var(--accent);
+  background: var(--bg2);
+  box-shadow: 0 0 0 4px rgba(200,241,53,0.06);
+}
+
+/* CATEGORY GRID */
+.grid-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 12px;
+  font-family: var(--mono);
+  animation: fadeDown 0.5s 0.2s ease both;
+}
+
+.cat-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  animation: fadeDown 0.5s 0.25s ease both;
+}
+
+.cat-btn {
+  position: relative;
+  border: none;
+  border-radius: var(--radius);
+  padding: 16px 12px 14px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 82px;
+  font-family: var(--font);
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--bg);
+  transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s;
+  text-align: center;
+  letter-spacing: 0.2px;
+  overflow: hidden;
+}
+
+.cat-btn::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(255,255,255,0);
+  transition: background 0.15s;
+}
+
+.cat-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.3); }
+.cat-btn:hover::after { background: rgba(255,255,255,0.08); }
+.cat-btn:active { transform: scale(0.96); }
+.cat-btn.sending { opacity: 0.6; pointer-events: none; }
+
+.cat-btn.success-flash {
+  animation: flashSuccess 0.6s ease;
+}
+
+.cat-emoji { font-size: 20px; line-height: 1; }
+
+.cat-btn.braindump {
+  grid-column: span 2;
+  flex-direction: row;
+  justify-content: center;
+  gap: 10px;
+  color: var(--text);
+}
+
+/* Category colours */
+.cat-btn[data-cat="Health"]                { background: var(--health); }
+.cat-btn[data-cat="Investments"]           { background: var(--invest); }
+.cat-btn[data-cat="Personal Learning"]     { background: var(--learning); }
+.cat-btn[data-cat="Home"]                  { background: var(--home); }
+.cat-btn[data-cat="Admin Personal"]        { background: var(--adminp); }
+.cat-btn[data-cat="Admin Shared"]          { background: var(--admins); }
+.cat-btn[data-cat="Returns"]               { background: var(--returns); }
+.cat-btn[data-cat="numeri.ch"]             { background: var(--numeri); }
+.cat-btn[data-cat="öpfinder"]              { background: var(--opfinder); }
+.cat-btn[data-cat="Tech Projects"]         { background: var(--tech); }
+.cat-btn[data-cat="Residents Association"] { background: var(--residents); }
+.cat-btn[data-cat="Friends & Family"]      { background: var(--friends); }
+.cat-btn[data-cat="Braindump"]             { background: var(--surface2); }
+
+/* ===== VOICE MODE ===== */
+.voice-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px 0 40px;
+}
+
+.voice-title {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 8px;
+  font-family: var(--mono);
+}
+
+.voice-subtitle {
+  font-size: 15px;
+  color: var(--muted);
+  text-align: center;
+  max-width: 320px;
+  line-height: 1.6;
+  margin-bottom: 52px;
+}
+
+.voice-subtitle strong { color: var(--text); }
+
+/* BIG RECORD BUTTON */
+.record-btn {
+  width: 140px; height: 140px;
+  border-radius: 50%;
+  border: none;
+  background: var(--surface);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  position: relative;
+  transition: transform 0.2s ease;
+  box-shadow: 0 0 0 1px var(--border), 0 20px 60px rgba(0,0,0,0.4);
+}
+
+.record-btn::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: 50%;
+  background: conic-gradient(var(--accent) 0%, transparent 60%);
+  opacity: 0;
+  transition: opacity 0.3s;
+  animation: none;
+}
+
+.record-btn.recording::before {
+  opacity: 1;
+  animation: spin 2s linear infinite;
+}
+
+.record-btn:hover { transform: scale(1.04); }
+.record-btn:active { transform: scale(0.97); }
+
+.record-inner {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.record-icon {
+  font-size: 42px;
+  transition: all 0.3s;
+}
+
+.record-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--muted);
+  font-family: var(--mono);
+  transition: color 0.3s;
+}
+
+.record-btn.recording .record-icon { filter: drop-shadow(0 0 12px rgba(200,241,53,0.8)); }
+.record-btn.recording .record-label { color: var(--accent); }
+
+/* TRANSCRIPT BOX */
+.transcript-box {
+  width: 100%;
+  max-width: 520px;
+  margin-top: 40px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  display: none;
+}
+
+.transcript-box.visible { display: block; animation: fadeIn 0.3s ease both; }
+
+.transcript-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 10px;
+  font-family: var(--mono);
+}
+
+.transcript-text {
+  font-size: 14px;
+  color: var(--text);
+  line-height: 1.7;
+  margin-bottom: 16px;
+}
+
+.transcript-processing {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--accent);
+  font-family: var(--mono);
+}
+
+/* VOICE SUMMARY */
+.voice-summary {
+  width: 100%;
+  max-width: 520px;
+  margin-top: 16px;
+  display: none;
+}
+
+.voice-summary.visible { display: block; animation: fadeIn 0.3s ease both; }
+
+.summary-title {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 10px;
+  font-family: var(--mono);
+}
+
+.summary-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  margin-bottom: 6px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  font-size: 13px;
+  animation: fadeIn 0.3s ease both;
+}
+
+.summary-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.summary-task { flex: 1; color: var(--text); }
+.summary-cat {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  color: var(--muted);
+  font-family: var(--mono);
+  text-align: right;
+}
+
+.summary-status { font-size: 14px; }
+
+/* STATUS BAR */
+.statusbar {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  background: rgba(14,15,20,0.92);
+  backdrop-filter: blur(20px);
+  border-top: 1px solid var(--border);
+  padding: 10px 28px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  z-index: 500;
+}
+
+.status-left { min-width: 160px; }
+.status-label { font-size: 9px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--muted); font-family: var(--mono); margin-bottom: 2px; }
+.status-value { font-size: 12px; font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 200px; }
+
+.status-quote {
+  flex: 1;
+  text-align: center;
+  font-size: 12px;
+  color: var(--muted);
+  font-style: italic;
+  padding: 0 20px;
+}
+
+.status-clocks {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+}
+
+.clock-item { text-align: right; }
+.clock-city { font-size: 9px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--muted); font-family: var(--mono); }
+.clock-time { font-size: 14px; font-weight: 700; color: var(--text); font-family: var(--mono); letter-spacing: 1px; }
+
+/* SETTINGS PANEL */
+.settings-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  backdrop-filter: blur(4px);
+  z-index: 800;
+  display: none;
+  animation: fadeIn 0.2s ease;
+}
+
+.settings-overlay.open { display: block; }
+
+.settings-panel {
+  position: fixed;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 28px;
+  width: min(400px, 90vw);
+  z-index: 900;
+  display: none;
+  animation: scaleIn 0.2s ease;
+}
+
+.settings-panel.open { display: block; }
+
+.settings-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 22px;
+}
+
+.settings-header h3 { font-size: 16px; font-weight: 700; }
+
+.settings-close {
+  width: 28px; height: 28px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--muted);
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px;
+}
+
+.settings-close:hover { color: var(--text); }
+
+.settings-field { margin-bottom: 16px; }
+.settings-field label { font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); display: block; margin-bottom: 6px; font-family: var(--mono); }
+.settings-field input {
+  width: 100%;
+  padding: 10px 14px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  color: var(--text);
+  font-family: var(--mono);
+  font-size: 12px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.settings-field input:focus { border-color: var(--accent); }
+
+.save-btn {
+  width: 100%;
+  padding: 12px;
+  background: var(--accent);
+  color: var(--bg);
+  border: none;
+  border-radius: 10px;
+  font-family: var(--font);
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity 0.2s;
+  margin-top: 4px;
+}
+.save-btn:hover { opacity: 0.88; }
+
+/* TOAST */
+.toast-container {
+  position: fixed;
+  top: 20px; left: 50%;
+  transform: translateX(-50%);
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: center;
+  pointer-events: none;
+}
+
+.toast {
+  padding: 11px 20px;
+  border-radius: 40px;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  animation: toastIn 0.3s ease both;
+  pointer-events: none;
+}
+
+.toast.success { background: var(--accent); color: var(--bg); }
+.toast.error   { background: var(--health); color: #fff; }
+.toast.info    { background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
+.toast.out     { animation: toastOut 0.25s ease forwards; }
+
+/* DOTS LOADER */
+.dots { display: inline-flex; gap: 3px; align-items: center; }
+.dots span {
+  width: 4px; height: 4px;
+  border-radius: 50%;
+  background: var(--accent);
+  animation: dotBounce 1.2s infinite ease-in-out;
+}
+.dots span:nth-child(2) { animation-delay: 0.15s; }
+.dots span:nth-child(3) { animation-delay: 0.3s; }
+
+/* ANIMATIONS */
+@keyframes fadeDown {
+  from { opacity: 0; transform: translateY(-12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes scaleIn {
+  from { opacity: 0; transform: translate(-50%, -50%) scale(0.95); }
+  to   { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+}
+@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+@keyframes flashSuccess {
+  0%   { filter: brightness(1); }
+  30%  { filter: brightness(1.5); }
+  100% { filter: brightness(1); }
+}
+@keyframes toastIn {
+  from { opacity: 0; transform: translateY(-8px) scale(0.94); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes toastOut {
+  to { opacity: 0; transform: translateY(-8px) scale(0.94); }
+}
+@keyframes dotBounce {
+  0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; }
+  40% { transform: scale(1); opacity: 1; }
+}
+
+/* RESPONSIVE */
+@media (max-width: 600px) {
+  .app { padding: 20px 16px 90px; }
+  .cat-grid { grid-template-columns: repeat(3, 1fr); }
+  .cat-btn.braindump { grid-column: span 3; }
+  .status-quote { display: none; }
+  .greeting-text { font-size: 20px; }
+  .record-btn { width: 120px; height: 120px; }
+  .record-icon { font-size: 36px; }
+}
+
+@media (max-width: 400px) {
+  .cat-grid { grid-template-columns: repeat(2, 1fr); }
+  .cat-btn.braindump { grid-column: span 2; }
+}
+</style>
+</head>
+<body>
+
+<div class="orb orb-1"></div>
+<div class="orb orb-2"></div>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- SETTINGS OVERLAY -->
+<div class="settings-overlay" id="settingsOverlay" onclick="closeSettings()"></div>
+<div class="settings-panel" id="settingsPanel">
+  <div class="settings-header">
+    <h3>⚙️ Settings</h3>
+    <button class="settings-close" onclick="closeSettings()">✕</button>
+  </div>
+  <div class="settings-field">
+    <label>Worker URL</label>
+    <input type="text" id="workerUrlInput" placeholder="https://your-worker.workers.dev" />
+  </div>
+  <div class="settings-field">
+    <label>Gemini API Key</label>
+    <input type="password" id="geminiKeyInput" placeholder="AIza..." />
+  </div>
+  <button class="save-btn" onclick="saveSettings()">Save Settings</button>
+</div>
+
+<!-- APP -->
+<div class="app">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="brand">
+      <div class="brand-logo">F</div>
+      <div class="brand-name">flink<span>.</span></div>
+    </div>
+    <div class="header-right">
+      <div class="mode-toggle">
+        <button class="mode-btn active" id="textModeBtn" onclick="setMode('text')">✏️ Text</button>
+        <button class="mode-btn" id="voiceModeBtn" onclick="setMode('voice')">🎙 Voice</button>
+      </div>
+      <button class="icon-btn" onclick="openSettings()" title="Settings">⚙️</button>
+    </div>
+  </div>
+
+  <!-- GREETING -->
+  <div class="greeting">
+    <div class="greeting-time" id="greetingTime">WEDNESDAY · LONDON</div>
+    <div class="greeting-text">Empty your mind, <span class="accent">Greg.</span></div>
+  </div>
+
+  <!-- TEXT MODE -->
+  <div id="text-mode">
+
+    <div class="board-wrap">
+      <button class="board-btn active" data-board="backlog" onclick="setBoard(this)">Backlog</button>
+      <button class="board-btn" data-board="today" onclick="setBoard(this)">Today</button>
+      <button class="board-btn" data-board="this-week" onclick="setBoard(this)">This Week</button>
+    </div>
+
+    <div class="input-wrap">
+      <textarea class="task-input" id="taskInput" rows="1"
+        placeholder="What needs doing…"
+        onkeydown="handleKey(event)"
+        oninput="autoResize(this)"></textarea>
+    </div>
+
+    <div class="grid-label">→ tap a category to send</div>
+
+    <div class="cat-grid">
+      <button class="cat-btn" data-cat="Health"                onclick="sendTask(this)"><span class="cat-emoji">🏥</span>Health</button>
+      <button class="cat-btn" data-cat="Investments"           onclick="sendTask(this)"><span class="cat-emoji">📈</span>Investments</button>
+      <button class="cat-btn" data-cat="Personal Learning"     onclick="sendTask(this)"><span class="cat-emoji">🎓</span>Personal Learning</button>
+      <button class="cat-btn" data-cat="Home"                  onclick="sendTask(this)"><span class="cat-emoji">🏠</span>Home</button>
+      <button class="cat-btn" data-cat="Admin Personal"        onclick="sendTask(this)"><span class="cat-emoji">🗂</span>Admin Personal</button>
+      <button class="cat-btn" data-cat="Admin Shared"          onclick="sendTask(this)"><span class="cat-emoji">🤝</span>Admin Shared</button>
+      <button class="cat-btn" data-cat="Returns"               onclick="sendTask(this)"><span class="cat-emoji">📦</span>Returns</button>
+      <button class="cat-btn" data-cat="numeri.ch"             onclick="sendTask(this)"><span class="cat-emoji">🇨🇭</span>numeri.ch</button>
+      <button class="cat-btn" data-cat="öpfinder"              onclick="sendTask(this)"><span class="cat-emoji">💡</span>öpfinder</button>
+      <button class="cat-btn" data-cat="Tech Projects"         onclick="sendTask(this)"><span class="cat-emoji">🛠</span>Tech Projects</button>
+      <button class="cat-btn" data-cat="Residents Association" onclick="sendTask(this)"><span class="cat-emoji">🏢</span>Residents Assoc.</button>
+      <button class="cat-btn" data-cat="Friends & Family"      onclick="sendTask(this)"><span class="cat-emoji">👥</span>Friends & Family</button>
+      <button class="cat-btn braindump" data-cat="Braindump"   onclick="sendTask(this)"><span class="cat-emoji">🧠</span><span>Braindump</span></button>
+    </div>
+
+  </div>
+
+  <!-- VOICE MODE -->
+  <div id="voice-mode">
+    <div class="voice-container">
+      <div class="voice-title">Voice Capture</div>
+      <div class="voice-subtitle">Dump everything on your mind. <strong>Gemini will transcribe, split and categorise</strong> each task automatically.</div>
+
+      <button class="record-btn" id="recordBtn" onclick="toggleRecord()">
+        <div class="record-inner">
+          <div class="record-icon" id="recordIcon">🎙</div>
+          <div class="record-label" id="recordLabel">tap to record</div>
+        </div>
+      </button>
+
+      <div class="transcript-box" id="transcriptBox">
+        <div class="transcript-label">Transcript</div>
+        <div class="transcript-text" id="transcriptText"></div>
+        <div class="transcript-processing" id="processingIndicator" style="display:none">
+          <span>Categorising</span>
+          <div class="dots"><span></span><span></span><span></span></div>
+        </div>
+      </div>
+
+      <div class="voice-summary" id="voiceSummary">
+        <div class="summary-title">Sent to Blitzit</div>
+        <div id="summaryItems"></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- STATUS BAR -->
+<div class="statusbar">
+  <div class="status-left">
+    <div class="status-label">Last sent</div>
+    <div class="status-value" id="lastTask">—</div>
+  </div>
+  <div class="status-quote" id="statusQuote"></div>
+  <div class="status-clocks">
+    <div class="clock-item">
+      <div class="clock-city">🇬🇧 LDN</div>
+      <div class="clock-time" id="clockLondon">—</div>
+    </div>
+    <div class="clock-item">
+      <div class="clock-city">🇨🇭 GVA</div>
+      <div class="clock-time" id="clockGeneva">—</div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ─── CONFIG ───────────────────────────────────────────────────
+const DEFAULT_WORKER = "https://rapid-frost-ae90.lgt-c0c.workers.dev";
+const DEFAULT_GEMINI = "AIzaSyAOUzrDECA7r_LlUiW1Ev9WgpWBObJXp2o";
+
+// Category colours for summary dots
+const CAT_COLORS = {
+  "Health": "#ff4d6d", "Investments": "#00c896", "Personal Learning": "#ffb830",
+  "Home": "#40d9a0", "Admin Personal": "#7c8cf8", "Admin Shared": "#a78bfa",
+  "Returns": "#fb923c", "numeri.ch": "#f87171", "öpfinder": "#38bdf8",
+  "Tech Projects": "#e879f9", "Residents Association": "#facc15",
+  "Friends & Family": "#f472b6", "Braindump": "#94a3b8"
+};
+
+const QUOTES = [
+  "Small progress is still progress.",
+  "Done is better than perfect.",
+  "One task at a time.",
+  "Empty mind, full life.",
+  "Capture it. Clear it. Move on.",
+  "The best time is now.",
+  "Focus is a superpower.",
+  "Ship it.",
+];
+
+// ─── STATE ────────────────────────────────────────────────────
+let currentBoard   = "backlog";
+let currentMode    = "text";
+let isRecording    = false;
+let mediaRecorder  = null;
+let audioChunks    = [];
+let workerUrl      = localStorage.getItem("workerUrl")  || DEFAULT_WORKER;
+let geminiKey      = localStorage.getItem("geminiKey")  || DEFAULT_GEMINI;
+
+// ─── INIT ─────────────────────────────────────────────────────
+document.addEventListener("DOMContentLoaded", () => {
+  updateGreeting();
+  updateClocks();
+  setInterval(updateClocks, 10000);
+  document.getElementById("statusQuote").textContent = QUOTES[Math.floor(Math.random() * QUOTES.length)];
+
+  // Auto-detect mobile → default voice mode
+  if (window.innerWidth <= 600) setMode("voice");
+
+  // Load saved settings into inputs
+  document.getElementById("workerUrlInput").value = workerUrl;
+  document.getElementById("geminiKeyInput").value = geminiKey;
+});
+
+// ─── GREETING ─────────────────────────────────────────────────
+function updateGreeting() {
+  const days = ["SUNDAY","MONDAY","TUESDAY","WEDNESDAY","THURSDAY","FRIDAY","SATURDAY"];
+  const now  = new Date();
+  document.getElementById("greetingTime").textContent =
+    days[now.getDay()] + " · LONDON";
+}
+
+// ─── CLOCKS ───────────────────────────────────────────────────
+function updateClocks() {
+  const fmt = tz => new Date().toLocaleTimeString("en-GB", {
+    timeZone: tz, hour: "2-digit", minute: "2-digit", hour12: false
+  });
+  document.getElementById("clockLondon").textContent = fmt("Europe/London");
+  document.getElementById("clockGeneva").textContent = fmt("Europe/Zurich");
+}
+
+// ─── MODE SWITCH ──────────────────────────────────────────────
+function setMode(mode) {
+  currentMode = mode;
+  document.getElementById("text-mode").style.display  = mode === "text"  ? "block" : "none";
+  document.getElementById("voice-mode").style.display = mode === "voice" ? "block" : "none";
+  document.getElementById("textModeBtn").classList.toggle("active",  mode === "text");
+  document.getElementById("voiceModeBtn").classList.toggle("active", mode === "voice");
+}
+
+// ─── BOARD ────────────────────────────────────────────────────
+function setBoard(btn) {
+  currentBoard = btn.dataset.board;
+  document.querySelectorAll(".board-btn").forEach(b => b.classList.remove("active"));
+  btn.classList.add("active");
+}
+
+// ─── INPUT RESIZE ─────────────────────────────────────────────
+function autoResize(el) {
+  el.style.height = "auto";
+  el.style.height = el.scrollHeight + "px";
+}
+
+function handleKey(e) {
+  if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); }
+}
+
+// ─── SEND TASK (Text Mode) ────────────────────────────────────
+async function sendTask(btn) {
+  const input = document.getElementById("taskInput");
+  const title = input.value.trim();
+  if (!title) { showToast("Type a task first", "info"); return; }
+
+  const cat = btn.dataset.cat;
+  btn.classList.add("sending");
+
+  try {
+    await postToBlitzit(title, cat, currentBoard);
+    btn.classList.remove("sending");
+    btn.classList.add("success-flash");
+    setTimeout(() => btn.classList.remove("success-flash"), 700);
+    document.getElementById("lastTask").textContent = `${title} → ${cat}`;
+    input.value = "";
+    input.style.height = "auto";
+    showToast(`✓ ${cat}`, "success");
+  } catch (err) {
+    btn.classList.remove("sending");
+    showToast("Failed to send — check worker URL", "error");
+    console.error(err);
+  }
+}
+
+// ─── POST TO BLITZIT VIA WORKER ───────────────────────────────
+async function postToBlitzit(title, category, board = "backlog") {
+  const url = localStorage.getItem("workerUrl") || DEFAULT_WORKER;
+  const res  = await fetch(url, {
+    method:  "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      action:   "create",
+      title:    title,
+      board:    board,
+      id:       "flink-" + Date.now() + "-" + Math.random().toString(36).slice(2,7),
+      source:   "Flink",
+      category: category
+    })
+  });
+  if (!res.ok) throw new Error("Worker responded " + res.status);
+  return res;
+}
+
+// ─── VOICE RECORDING ──────────────────────────────────────────
+async function toggleRecord() {
+  if (isRecording) {
+    stopRecording();
+  } else {
+    await startRecording();
+  }
+}
+
+async function startRecording() {
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    audioChunks  = [];
+    mediaRecorder = new MediaRecorder(stream);
+    mediaRecorder.ondataavailable = e => { if (e.data.size > 0) audioChunks.push(e.data); };
+    mediaRecorder.onstop = processVoice;
+    mediaRecorder.start();
+    isRecording = true;
+
+    const btn   = document.getElementById("recordBtn");
+    const icon  = document.getElementById("recordIcon");
+    const label = document.getElementById("recordLabel");
+    btn.classList.add("recording");
+    icon.textContent  = "⏹";
+    label.textContent = "recording…";
+
+    // Reset summary
+    document.getElementById("voiceSummary").classList.remove("visible");
+    document.getElementById("transcriptBox").classList.remove("visible");
+    document.getElementById("summaryItems").innerHTML = "";
+  } catch (err) {
+    showToast("Microphone access denied", "error");
+  }
+}
+
+function stopRecording() {
+  if (mediaRecorder && mediaRecorder.state !== "inactive") {
+    mediaRecorder.stop();
+    mediaRecorder.stream.getTracks().forEach(t => t.stop());
+  }
+  isRecording = false;
+  const btn   = document.getElementById("recordBtn");
+  const icon  = document.getElementById("recordIcon");
+  const label = document.getElementById("recordLabel");
+  btn.classList.remove("recording");
+  icon.textContent  = "⏳";
+  label.textContent = "processing…";
+}
+
+async function processVoice() {
+  const blob    = new Blob(audioChunks, { type: "audio/webm" });
+  const b64data = await blobToBase64(blob);
+  const base64  = b64data.split(",")[1];
+
+  // Show transcript box with loader
+  const tbox = document.getElementById("transcriptBox");
+  tbox.classList.add("visible");
+  document.getElementById("transcriptText").textContent = "";
+  document.getElementById("processingIndicator").style.display = "flex";
+
+  const key = localStorage.getItem("geminiKey") || DEFAULT_GEMINI;
+
+  try {
+    // Step 1: Transcribe
+    const transcribeRes = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${key}`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contents: [{
+            parts: [
+              { inline_data: { mime_type: "audio/webm", data: base64 } },
+              { text: "Transcribe this voice message exactly. Return only the transcription, nothing else." }
+            ]
+          }]
+        })
+      }
+    );
+
+    const transcribeData = await transcribeRes.json();
+    const transcript     = transcribeData.candidates?.[0]?.content?.parts?.[0]?.text || "";
+    document.getElementById("transcriptText").textContent = transcript;
+
+    // Step 2: Categorise + split tasks
+    document.getElementById("processingIndicator").style.display = "flex";
+
+    const categories = Object.keys(CAT_COLORS).join(", ");
+    const categoriseRes = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${key}`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contents: [{
+            parts: [{
+              text: `You are a personal task assistant for Greg, who lives in London and works in cybersecurity sales.
+
+Extract ALL individual tasks from this text and categorise each one.
+
+Available categories: ${categories}
+
+Rules:
+- Split compound sentences into individual tasks
+- If unsure of category, use "Braindump"  
+- Detect board: if the text mentions "today" → board = "today", otherwise → board = "backlog"
+- Return ONLY valid JSON, no markdown, no explanation
+
+Return this exact format:
+{"board":"backlog","tasks":[{"title":"task title","category":"Category Name"}]}`
+            }, {
+              text: transcript
+            }]
+          }]
+        })
+      }
+    );
+
+    const catData = await categoriseRes.json();
+    let raw       = catData.candidates?.[0]?.content?.parts?.[0]?.text || "{}";
+    raw = raw.replace(/```json|```/g, "").trim();
+
+    const parsed = JSON.parse(raw);
+    const board  = parsed.board || "backlog";
+    const tasks  = parsed.tasks || [];
+
+    document.getElementById("processingIndicator").style.display = "none";
+
+    if (!tasks.length) {
+      showToast("No tasks detected", "info");
+      resetRecordBtn();
+      return;
+    }
+
+    // Step 3: Fire all tasks to Blitzit
+    const results  = [];
+    const promises = tasks.map(async t => {
+      try {
+        await postToBlitzit(t.title, t.category, board);
+        results.push({ ...t, board, ok: true });
+      } catch {
+        results.push({ ...t, board, ok: false });
+      }
+    });
+
+    await Promise.all(promises);
+
+    // Show summary
+    const summaryEl = document.getElementById("voiceSummary");
+    const itemsEl   = document.getElementById("summaryItems");
+    itemsEl.innerHTML = "";
+
+    results.forEach(r => {
+      const div = document.createElement("div");
+      div.className = "summary-item";
+      const color = CAT_COLORS[r.category] || "#94a3b8";
+      div.innerHTML = `
+        <div class="summary-dot" style="background:${color}"></div>
+        <div class="summary-task">${r.title}</div>
+        <div class="summary-cat">${r.category}</div>
+        <div class="summary-status">${r.ok ? "✓" : "✗"}</div>
+      `;
+      itemsEl.appendChild(div);
+    });
+
+    summaryEl.classList.add("visible");
+
+    const ok    = results.filter(r => r.ok).length;
+    const total = results.length;
+    document.getElementById("lastTask").textContent = `${ok}/${total} tasks sent via voice`;
+    showToast(`✓ ${ok} task${ok !== 1 ? "s" : ""} sent`, "success");
+
+  } catch (err) {
+    console.error(err);
+    document.getElementById("processingIndicator").style.display = "none";
+    showToast("Gemini error — check API key", "error");
+  }
+
+  resetRecordBtn();
+}
+
+function resetRecordBtn() {
+  document.getElementById("recordIcon").textContent  = "🎙";
+  document.getElementById("recordLabel").textContent = "tap to record";
+}
+
+function blobToBase64(blob) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload  = () => resolve(reader.result);
+    reader.onerror = reject;
+    reader.readAsDataURL(blob);
+  });
+}
+
+// ─── SETTINGS ─────────────────────────────────────────────────
+function openSettings() {
+  document.getElementById("settingsOverlay").classList.add("open");
+  document.getElementById("settingsPanel").classList.add("open");
+}
+
+function closeSettings() {
+  document.getElementById("settingsOverlay").classList.remove("open");
+  document.getElementById("settingsPanel").classList.remove("open");
+}
+
+function saveSettings() {
+  const w = document.getElementById("workerUrlInput").value.trim();
+  const g = document.getElementById("geminiKeyInput").value.trim();
+  if (w) { localStorage.setItem("workerUrl", w); workerUrl = w; }
+  if (g) { localStorage.setItem("geminiKey", g); geminiKey = g; }
+  closeSettings();
+  showToast("Settings saved", "success");
+}
+
+// ─── TOAST ────────────────────────────────────────────────────
+function showToast(msg, type = "info", duration = 2800) {
+  const container = document.getElementById("toastContainer");
+  const toast     = document.createElement("div");
+  toast.className = `toast ${type}`;
+  toast.textContent = msg;
+  container.appendChild(toast);
+  setTimeout(() => {
+    toast.classList.add("out");
+    setTimeout(() => toast.remove(), 300);
+  }, duration);
+}
+</script>
+</body>
+</html>
