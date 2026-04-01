@@ -759,16 +759,22 @@ body::before {
   </div>
   <div class="settings-field">
     <label>Groq API Key (voice transcription)</label>
-    <input type="password" id="groqKeyInput" placeholder="gsk_..." />
+    <div style="position:relative;">
+      <input type="password" id="groqKeyInput" placeholder="gsk_..." style="width:100%;padding-right:60px;" oninput="document.getElementById('groqKeyHint').textContent = this.value.length > 5 ? '···' + this.value.slice(-5) : ''" />
+      <span id="groqKeyHint" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);font-family:var(--mono);font-size:11px;color:var(--accent);pointer-events:none;"></span>
+    </div>
   </div>
   <div class="settings-field">
     <label>Gemini API Key (categorisation)</label>
-    <input type="password" id="geminiKeyInput" placeholder="AIza..." />
+    <div style="position:relative;">
+      <input type="password" id="geminiKeyInput" placeholder="AIza..." style="width:100%;padding-right:60px;" oninput="document.getElementById('geminiKeyHint').textContent = this.value.length > 5 ? '···' + this.value.slice(-5) : ''" />
+      <span id="geminiKeyHint" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);font-family:var(--mono);font-size:11px;color:var(--accent);pointer-events:none;"></span>
+    </div>
   </div>
   <button class="save-btn" onclick="saveSettings()">Save Settings</button>
   <div style="margin-top:16px; padding-top:16px; border-top:1px solid var(--border); display:flex; justify-content:space-between; align-items:center;">
-    <button onclick="openChangelog()" style="font-size:10px; font-family:var(--mono); color:var(--accent); background:none; border:none; cursor:pointer; padding:0; text-decoration:underline;" id="versionBtn">v1.4.0</button>
-    <span style="font-size:10px; font-family:var(--mono); color:var(--muted);">Updated 2026-04-02 01:30 BST</span>
+    <button onclick="openChangelog()" style="font-size:10px; font-family:var(--mono); color:var(--accent); background:none; border:none; cursor:pointer; padding:0; text-decoration:underline;" id="versionBtn">v1.5.0</button>
+    <span style="font-size:10px; font-family:var(--mono); color:var(--muted);">Updated 2026-04-02 02:30 BST</span>
   </div>
 </div>
 
@@ -898,10 +904,11 @@ const DEFAULT_WORKER = "https://rapid-frost-ae90.lgt-c0c.workers.dev";
 const DEFAULT_GEMINI = "";  // Set in Settings panel
 const DEFAULT_GROQ   = "";  // Set in Settings panel
 
-const VERSION = "1.4.1";
-const UPDATED = "2026-04-02 02:00 BST";
+const VERSION = "1.5.0";
+const UPDATED = "2026-04-02 02:30 BST";
 
 const CHANGELOG = [
+  { v: "1.5.0", date: "2026-04-02", notes: ["Show last 5 chars of API keys in settings so you can verify the right key is saved", "Fixed Groq invalid API key issue — key now read correctly from localStorage", "Version number corrected to match actual build"] },
   { v: "1.4.1", date: "2026-04-02", notes: ["Fixed Groq audio file format — explicit File object with correct mime type", "Removed hardcoded API keys from source code"] },
   { v: "1.4.0", date: "2026-04-02", notes: ["Switched to Groq (Whisper) for voice transcription — faster and reliable", "Gemini now handles text-only categorisation (no audio quota issues)", "Added Groq API key field to settings", "Clickable version number with changelog popup", "Fixed settings timestamp"] },
   { v: "1.3.0", date: "2026-04-02", notes: ["Auto-detect Gemini model via ListModels", "Combined transcription + categorisation into single Gemini call", "Debug output in transcript box on errors"] },
@@ -950,9 +957,9 @@ document.addEventListener("DOMContentLoaded", () => {
   if (window.innerWidth <= 600) setMode("voice");
 
   // Load saved settings into inputs
-  document.getElementById("workerUrlInput").value = localStorage.getItem("workerUrl")  || DEFAULT_WORKER;
-  document.getElementById("groqKeyInput").value   = localStorage.getItem("groqKey")    || DEFAULT_GROQ;
-  document.getElementById("geminiKeyInput").value = localStorage.getItem("geminiKey")  || DEFAULT_GEMINI;
+  document.getElementById("workerUrlInput").value = localStorage.getItem("workerUrl") || DEFAULT_WORKER;
+  setKeyField("groqKeyInput",   "groqKeyHint",   localStorage.getItem("groqKey")   || DEFAULT_GROQ);
+  setKeyField("geminiKeyInput", "geminiKeyHint", localStorage.getItem("geminiKey") || DEFAULT_GEMINI);
 });
 
 // ─── GEMINI MODEL AUTO-DETECT ─────────────────────────────────
@@ -1309,7 +1316,22 @@ function blobToBase64(blob) {
 }
 
 // ─── SETTINGS ─────────────────────────────────────────────────
+function setKeyField(inputId, hintId, value) {
+  const input = document.getElementById(inputId);
+  const hint  = document.getElementById(hintId);
+  if (value) {
+    input.value = value;
+    hint.textContent = "···" + value.slice(-5);
+  } else {
+    input.value = "";
+    hint.textContent = "";
+  }
+}
+
 function openSettings() {
+  // Refresh hints when opening
+  setKeyField("groqKeyInput",   "groqKeyHint",   localStorage.getItem("groqKey")   || DEFAULT_GROQ);
+  setKeyField("geminiKeyInput", "geminiKeyHint", localStorage.getItem("geminiKey") || DEFAULT_GEMINI);
   document.getElementById("settingsOverlay").classList.add("open");
   document.getElementById("settingsPanel").classList.add("open");
 }
@@ -1324,8 +1346,8 @@ function saveSettings() {
   const gr = document.getElementById("groqKeyInput").value.trim();
   const g  = document.getElementById("geminiKeyInput").value.trim();
   if (w)  { localStorage.setItem("workerUrl", w); }
-  if (gr) { localStorage.setItem("groqKey",   gr); }
-  if (g)  { localStorage.setItem("geminiKey", g); cachedGeminiModel = null; }
+  if (gr) { localStorage.setItem("groqKey",   gr); setKeyField("groqKeyInput",   "groqKeyHint",   gr); }
+  if (g)  { localStorage.setItem("geminiKey", g);  setKeyField("geminiKeyInput", "geminiKeyHint", g); cachedGeminiModel = null; }
   closeSettings();
   showToast("Settings saved", "success");
 }
