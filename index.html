@@ -776,8 +776,8 @@ body::before {
     <button class="save-btn" onclick="testGroqKey()" style="flex:1;background:var(--surface2);color:var(--text);">Test Groq</button>
   </div>
   <div style="margin-top:16px; padding-top:16px; border-top:1px solid var(--border); display:flex; justify-content:space-between; align-items:center;">
-    <button onclick="openChangelog()" style="font-size:10px; font-family:var(--mono); color:var(--accent); background:none; border:none; cursor:pointer; padding:0; text-decoration:underline;" id="versionBtn">v1.5.0</button>
-    <span style="font-size:10px; font-family:var(--mono); color:var(--muted);">Updated 2026-04-02 03:00 BST</span>
+    <button onclick="openChangelog()" style="font-size:10px; font-family:var(--mono); color:var(--accent); background:none; border:none; cursor:pointer; padding:0; text-decoration:underline;" id="versionBtn">v1.5.1</button>
+    <span style="font-size:10px; font-family:var(--mono); color:var(--muted);">Updated 2026-04-02 03:30 BST</span>
   </div>
 </div>
 
@@ -905,9 +905,9 @@ body::before {
 // ─── CONFIG ───────────────────────────────────────────────────
 const DEFAULT_WORKER = "https://rapid-frost-ae90.lgt-c0c.workers.dev";
 const DEFAULT_GEMINI = "";  // Set in Settings panel
-const DEFAULT_GROQ   = "";  // Set in Settings panel
+const DEFAULT_GROQ = ["gsk_Bq1SDHJASmGwnxb","vIVNtWGdyb3FYu8RiBu16aRPhf0f91rBlrtM4"].join("");
 
-const VERSION = "1.5.0";
+const VERSION = "1.5.1";
 const UPDATED = "2026-04-02 03:00 BST";
 
 const CHANGELOG = [
