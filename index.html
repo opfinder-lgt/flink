@@ -14,9 +14,8 @@
   --bg2:        #F8F8F8;
   --bg3:        #F0F0F0;
   --surface:    #F4F5FF;
-  --surface2:   #E8EEFF;
-  --border:     rgba(8,8,8,0.08);
-  --border2:    rgba(8,8,8,0.14);
+  --border:     rgba(8,8,8,0.09);
+  --border2:    rgba(8,8,8,0.15);
   --text:       #080808;
   --text2:      #5A5A5A;
   --text3:      #A0A0A0;
@@ -26,19 +25,19 @@
   --accent-glow:rgba(0,71,255,0.09);
   --alert:      #E83500;
 
-  --health:     #ff4d6d;
-  --invest:     #00c896;
-  --learning:   #ffb830;
-  --home:       #40d9a0;
-  --adminp:     #7c8cf8;
-  --admins:     #a78bfa;
-  --returns:    #fb923c;
-  --numeri:     #f87171;
-  --opfinder:   #38bdf8;
-  --tech:       #e879f9;
-  --residents:  #facc15;
-  --friends:    #f472b6;
-  --braindump:  #94a3b8;
+  --health:     #E8294A;
+  --invest:     #009E76;
+  --learning:   #C98A00;
+  --home:       #2BA87A;
+  --adminp:     #5566E8;
+  --admins:     #8B6FE8;
+  --returns:    #D96A1A;
+  --numeri:     #D94040;
+  --opfinder:   #0EA5D6;
+  --tech:       #C044D8;
+  --residents:  #B89600;
+  --friends:    #D43F8C;
+  --braindump:  #6B7280;
 
   --r:    10px;
   --rs:   6px;
@@ -49,9 +48,8 @@
 html.dark {
   --bg:         #0A0A0A;
   --bg2:        #111111;
-  --bg3:        #1A1A1A;
+  --bg3:        #1C1C1C;
   --surface:    #0D1530;
-  --surface2:   #162040;
   --border:     rgba(255,255,255,0.08);
   --border2:    rgba(255,255,255,0.13);
   --text:       #F0EEE8;
@@ -71,23 +69,24 @@ html, body {
   color: var(--text);
   overflow-x: hidden;
 }
-
 body { display: flex; flex-direction: column; min-height: 100vh; }
 
-/* smooth theme switching on key elements */
-body, .statusbar, .mode-toggle, .board-btn, .task-input,
+/* smooth theme transitions */
+body, .statusbar, .mode-toggle, .task-input, .board-btn,
 .transcript-box, .summary-item, .settings-panel, .icon-btn,
-.record-btn, #changelogPanel { transition: background 0.2s, border-color 0.2s, color 0.2s; }
+.record-btn, .cat-btn, #changelogPanel {
+  transition: background 0.25s, border-color 0.2s, color 0.2s;
+}
 
-/* ── LAYOUT ── */
+/* ── APP SHELL ── */
 .app {
   flex: 1;
   display: flex;
   flex-direction: column;
-  max-width: 860px;
+  max-width: 1200px;
   width: 100%;
   margin: 0 auto;
-  padding: 28px 24px 88px;
+  padding: 28px 32px 88px;
 }
 
 /* ── HEADER ── */
@@ -95,19 +94,15 @@ body, .statusbar, .mode-toggle, .board-btn, .task-input,
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 30px;
+  margin-bottom: 28px;
 }
-
 .brand { display: flex; align-items: center; gap: 9px; }
-
 .brand-logo {
   width: 30px; height: 30px;
-  background: var(--accent);
-  border-radius: var(--rs);
+  background: var(--accent); border-radius: var(--rs);
   display: flex; align-items: center; justify-content: center;
   font-size: 14px; font-weight: 800; color: #fff; letter-spacing: -1px;
 }
-
 .brand-name { font-size: 17px; font-weight: 700; letter-spacing: -0.4px; color: var(--text); }
 .brand-name span { color: var(--accent); }
 
@@ -120,19 +115,12 @@ body, .statusbar, .mode-toggle, .board-btn, .task-input,
   padding: 3px;
   border: 1px solid var(--border2);
 }
-
 .mode-btn {
-  padding: 5px 13px;
-  border-radius: 8px;
-  border: none;
-  background: transparent;
-  color: var(--text3);
-  font-family: var(--font);
-  font-size: 12px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.15s;
-  letter-spacing: 0.1px;
+  padding: 6px 14px;
+  border-radius: 8px; border: none;
+  background: transparent; color: var(--text3);
+  font-family: var(--font); font-size: 12px; font-weight: 600;
+  cursor: pointer; transition: all 0.15s; letter-spacing: 0.1px;
 }
 .mode-btn.active { background: var(--accent); color: #fff; }
 
@@ -140,67 +128,71 @@ body, .statusbar, .mode-toggle, .board-btn, .task-input,
   width: 32px; height: 32px;
   border-radius: var(--r);
   border: 1px solid var(--border2);
-  background: var(--bg);
-  color: var(--text2);
-  cursor: pointer;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 14px;
-  transition: background 0.15s, color 0.15s, border-color 0.15s;
+  background: var(--bg); color: var(--text2);
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  font-size: 14px; transition: background 0.15s, color 0.15s;
 }
 .icon-btn:hover { background: var(--bg3); color: var(--text); }
 
 /* ── GREETING ── */
-.greeting { margin-bottom: 26px; }
-
+.greeting { margin-bottom: 24px; }
 .greeting-date {
-  font-size: 10px; font-weight: 600;
-  letter-spacing: 1.5px; text-transform: uppercase;
-  color: var(--text3); margin-bottom: 5px;
+  font-size: 10px; font-weight: 600; letter-spacing: 1.5px;
+  text-transform: uppercase; color: var(--text3); margin-bottom: 4px;
   font-family: var(--mono);
 }
-
 .greeting-text {
-  font-size: clamp(19px, 3.2vw, 26px);
+  font-size: clamp(20px, 2.4vw, 28px);
   font-weight: 700; color: var(--text); letter-spacing: -0.4px;
 }
 .greeting-text .accent { color: var(--accent); }
 
-/* ── MODES ── */
+/* ── TEXT MODE — two-column desktop layout ── */
 #text-mode  { }
 #voice-mode { display: none; }
 
+.text-layout {
+  display: flex;
+  gap: 32px;
+  align-items: flex-start;
+}
+
+.text-left {
+  width: 300px;
+  flex-shrink: 0;
+  position: sticky;
+  top: 24px;
+}
+
+.text-right { flex: 1; min-width: 0; }
+
 /* ── BOARD ── */
 .board-wrap { display: flex; gap: 6px; margin-bottom: 14px; }
-
 .board-btn {
-  padding: 6px 14px;
+  padding: 7px 14px;
   border-radius: var(--rs);
   border: 1px solid var(--border2);
-  background: var(--bg);
-  color: var(--text2);
-  font-family: var(--font);
-  font-size: 11px; font-weight: 700;
-  letter-spacing: 0.4px; text-transform: uppercase;
+  background: var(--bg); color: var(--text2);
+  font-family: var(--font); font-size: 12px; font-weight: 700;
+  letter-spacing: 0.3px; text-transform: uppercase;
   cursor: pointer; transition: all 0.15s;
 }
 .board-btn:hover { color: var(--text); border-color: var(--accent); }
 .board-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
 
 /* ── INPUT ── */
-.input-wrap { position: relative; margin-bottom: 18px; }
-
+.input-wrap { margin-bottom: 0; }
 .task-input {
   width: 100%;
-  padding: 13px 16px;
+  padding: 14px 16px;
   background: var(--bg);
   border: 1.5px solid var(--border2);
   border-radius: var(--r);
   color: var(--text);
-  font-family: var(--font);
-  font-size: 14px; font-weight: 400;
+  font-family: var(--font); font-size: 15px; font-weight: 400;
   outline: none;
   transition: border-color 0.15s, box-shadow 0.15s;
-  resize: none; min-height: 50px; line-height: 1.5;
+  resize: none; min-height: 120px; line-height: 1.6;
 }
 .task-input::placeholder { color: var(--text3); }
 .task-input:focus {
@@ -208,104 +200,123 @@ body, .statusbar, .mode-toggle, .board-btn, .task-input,
   box-shadow: 0 0 0 3px var(--accent-glow);
 }
 
-/* ── CATEGORY GRID ── */
+/* ── GRID LABEL ── */
 .grid-label {
-  font-size: 10px; font-weight: 600;
-  letter-spacing: 1.5px; text-transform: uppercase;
-  color: var(--text3); margin-bottom: 10px;
+  font-size: 10px; font-weight: 600; letter-spacing: 1.5px;
+  text-transform: uppercase; color: var(--text3); margin-bottom: 10px;
   font-family: var(--mono);
 }
 
+/* ── CATEGORY GRID ── */
 .cat-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 7px;
 }
 
+/* ── CATEGORY BUTTON — icon pinned left, text centred ── */
 .cat-btn {
   position: relative;
-  border: none; border-radius: var(--r);
-  padding: 13px 10px 11px;
+  border: 1px solid var(--border2);
+  border-left-width: 3px;
+  border-radius: var(--r);
+  padding: 0 16px 0 44px;   /* left padding reserves icon space */
+  min-height: 54px;
   cursor: pointer;
-  display: flex; flex-direction: column;
-  align-items: center; justify-content: center;
-  gap: 5px; min-height: 72px;
-  font-family: var(--font);
-  font-size: 11px; font-weight: 700;
-  color: #fff;
-  transition: transform 0.12s, box-shadow 0.12s, opacity 0.12s;
-  text-align: center; letter-spacing: 0.1px;
+  display: flex;
+  align-items: center;
+  justify-content: center;  /* text centred in remaining space */
+  font-family: var(--font); font-size: 13px; font-weight: 600;
+  color: var(--text);
+  background: var(--bg);
+  text-align: center;
+  letter-spacing: 0.1px;
+  transition: transform 0.12s, box-shadow 0.12s, opacity 0.12s, background 0.2s;
   overflow: hidden;
 }
-.cat-btn::after {
-  content: ''; position: absolute; inset: 0;
-  background: rgba(255,255,255,0); transition: background 0.12s;
+.cat-emoji {
+  position: absolute;
+  left: 13px;
+  font-size: 20px;
+  line-height: 1;
+  flex-shrink: 0;
 }
-.cat-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(0,0,0,0.16); }
-.cat-btn:hover::after { background: rgba(255,255,255,0.1); }
-.cat-btn:active { transform: scale(0.96); }
-.cat-btn.sending { opacity: 0.5; pointer-events: none; }
+.cat-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 14px rgba(0,0,0,0.1); }
+.cat-btn:active { transform: scale(0.97); }
+.cat-btn.sending { opacity: 0.45; pointer-events: none; }
 .cat-btn.success-flash { animation: flashSuccess 0.5s ease; }
 
-.cat-emoji { font-size: 17px; line-height: 1; }
+/* Category colours — tinted bg + coloured left border */
+.cat-btn[data-cat="Health"]                { border-left-color: var(--health);    background: rgba(232,41,74,0.06); }
+.cat-btn[data-cat="Investments"]           { border-left-color: var(--invest);    background: rgba(0,158,118,0.06); }
+.cat-btn[data-cat="Personal Learning"]     { border-left-color: var(--learning);  background: rgba(201,138,0,0.06); }
+.cat-btn[data-cat="Home"]                  { border-left-color: var(--home);      background: rgba(43,168,122,0.06); }
+.cat-btn[data-cat="Admin Personal"]        { border-left-color: var(--adminp);    background: rgba(85,102,232,0.06); }
+.cat-btn[data-cat="Admin Shared"]          { border-left-color: var(--admins);    background: rgba(139,111,232,0.06); }
+.cat-btn[data-cat="Returns"]               { border-left-color: var(--returns);   background: rgba(217,106,26,0.06); }
+.cat-btn[data-cat="numeri.ch"]             { border-left-color: var(--numeri);    background: rgba(217,64,64,0.06); }
+.cat-btn[data-cat="öpfinder"]              { border-left-color: var(--opfinder);  background: rgba(14,165,214,0.06); }
+.cat-btn[data-cat="Tech Projects"]         { border-left-color: var(--tech);      background: rgba(192,68,216,0.06); }
+.cat-btn[data-cat="Residents Association"] { border-left-color: var(--residents); background: rgba(184,150,0,0.06); }
+.cat-btn[data-cat="Friends & Family"]      { border-left-color: var(--friends);   background: rgba(212,63,140,0.06); }
 
+/* Dark mode — slightly stronger tint */
+html.dark .cat-btn[data-cat="Health"]                { background: rgba(232,41,74,0.10); }
+html.dark .cat-btn[data-cat="Investments"]           { background: rgba(0,158,118,0.10); }
+html.dark .cat-btn[data-cat="Personal Learning"]     { background: rgba(201,138,0,0.10); }
+html.dark .cat-btn[data-cat="Home"]                  { background: rgba(43,168,122,0.10); }
+html.dark .cat-btn[data-cat="Admin Personal"]        { background: rgba(85,102,232,0.10); }
+html.dark .cat-btn[data-cat="Admin Shared"]          { background: rgba(139,111,232,0.10); }
+html.dark .cat-btn[data-cat="Returns"]               { background: rgba(217,106,26,0.10); }
+html.dark .cat-btn[data-cat="numeri.ch"]             { background: rgba(217,64,64,0.10); }
+html.dark .cat-btn[data-cat="öpfinder"]              { background: rgba(14,165,214,0.10); }
+html.dark .cat-btn[data-cat="Tech Projects"]         { background: rgba(192,68,216,0.10); }
+html.dark .cat-btn[data-cat="Residents Association"] { background: rgba(184,150,0,0.10); }
+html.dark .cat-btn[data-cat="Friends & Family"]      { background: rgba(212,63,140,0.10); }
+
+/* Braindump — full-width spacebar */
 .cat-btn.braindump {
-  grid-column: span 2; flex-direction: row;
-  justify-content: center; gap: 8px;
-  color: var(--text);
-  background: var(--bg3) !important;
-  border: 1px solid var(--border2);
+  grid-column: 1 / -1;
+  min-height: 58px;
+  padding: 0 16px 0 44px;
+  border-left-color: var(--braindump);
+  background: var(--bg3);
+  font-size: 14px; font-weight: 700;
+  justify-content: center;
 }
-html.dark .cat-btn.braindump { color: var(--text); }
-
-.cat-btn[data-cat="Health"]                { background: var(--health); }
-.cat-btn[data-cat="Investments"]           { background: var(--invest); }
-.cat-btn[data-cat="Personal Learning"]     { background: var(--learning); color: rgba(0,0,0,0.75); }
-.cat-btn[data-cat="Home"]                  { background: var(--home); color: rgba(0,0,0,0.75); }
-.cat-btn[data-cat="Admin Personal"]        { background: var(--adminp); }
-.cat-btn[data-cat="Admin Shared"]          { background: var(--admins); }
-.cat-btn[data-cat="Returns"]               { background: var(--returns); }
-.cat-btn[data-cat="numeri.ch"]             { background: var(--numeri); }
-.cat-btn[data-cat="öpfinder"]              { background: var(--opfinder); color: rgba(0,0,0,0.75); }
-.cat-btn[data-cat="Tech Projects"]         { background: var(--tech); }
-.cat-btn[data-cat="Residents Association"] { background: var(--residents); color: rgba(0,0,0,0.75); }
-.cat-btn[data-cat="Friends & Family"]      { background: var(--friends); }
+html.dark .cat-btn.braindump { background: var(--bg3); }
+.cat-btn.braindump .cat-emoji { font-size: 20px; }
 
 /* ── VOICE MODE ── */
 .voice-container {
   display: flex; flex-direction: column;
-  align-items: center; padding: 16px 0 36px;
+  align-items: center; padding: 40px 0;
+  max-width: 520px; margin: 0 auto;
 }
-
 .voice-title {
-  font-size: 10px; font-weight: 700;
-  letter-spacing: 1.5px; text-transform: uppercase;
-  color: var(--text3); margin-bottom: 6px;
+  font-size: 10px; font-weight: 700; letter-spacing: 1.5px;
+  text-transform: uppercase; color: var(--text3); margin-bottom: 6px;
   font-family: var(--mono);
 }
-
 .voice-subtitle {
-  font-size: 13px; color: var(--text2);
-  text-align: center; max-width: 290px;
-  line-height: 1.6; margin-bottom: 40px;
+  font-size: 14px; color: var(--text2);
+  text-align: center; max-width: 300px;
+  line-height: 1.6; margin-bottom: 44px;
 }
 .voice-subtitle strong { color: var(--text); }
 
 .record-btn {
-  width: 126px; height: 126px;
-  border-radius: 50%;
+  width: 130px; height: 130px; border-radius: 50%;
   border: 1.5px solid var(--border2);
-  background: var(--bg);
-  cursor: pointer;
+  background: var(--bg); cursor: pointer;
   display: flex; flex-direction: column;
   align-items: center; justify-content: center;
-  gap: 5px; position: relative;
+  gap: 6px; position: relative;
   transition: transform 0.2s, border-color 0.2s;
   box-shadow: 0 2px 20px rgba(0,0,0,0.07);
 }
 .record-btn::before {
-  content: ''; position: absolute; inset: -3px;
-  border-radius: 50%;
+  content: ''; position: absolute; inset: -3px; border-radius: 50%;
   background: conic-gradient(var(--accent) 0%, transparent 60%);
   opacity: 0; transition: opacity 0.3s;
 }
@@ -313,60 +324,48 @@ html.dark .cat-btn.braindump { color: var(--text); }
 .record-btn.recording::before { opacity: 1; animation: spin 2s linear infinite; }
 .record-btn:hover { transform: scale(1.03); border-color: var(--accent); }
 .record-btn:active { transform: scale(0.97); }
-
 .record-inner {
   position: relative; z-index: 1;
   display: flex; flex-direction: column;
-  align-items: center; gap: 4px;
+  align-items: center; gap: 5px;
 }
-
-.record-icon { font-size: 36px; transition: all 0.3s; }
-
+.record-icon { font-size: 38px; transition: all 0.3s; }
 .record-label {
-  font-size: 9px; font-weight: 700;
-  letter-spacing: 1.5px; text-transform: uppercase;
-  color: var(--text3); font-family: var(--mono);
-  transition: color 0.3s;
+  font-size: 9px; font-weight: 700; letter-spacing: 1.5px;
+  text-transform: uppercase; color: var(--text3);
+  font-family: var(--mono); transition: color 0.3s;
 }
 .record-btn.recording .record-label { color: var(--accent); }
 
 .transcript-box {
-  width: 100%; max-width: 490px;
-  margin-top: 28px;
-  background: var(--bg2);
-  border: 1px solid var(--border2);
-  border-radius: var(--r);
-  padding: 14px 16px; display: none;
+  width: 100%; margin-top: 32px;
+  background: var(--bg2); border: 1px solid var(--border2);
+  border-radius: var(--r); padding: 14px 16px; display: none;
 }
 .transcript-box.visible { display: block; }
-
 .transcript-label {
-  font-size: 9px; font-weight: 700;
-  letter-spacing: 1.5px; text-transform: uppercase;
-  color: var(--text3); margin-bottom: 7px;
+  font-size: 9px; font-weight: 700; letter-spacing: 1.5px;
+  text-transform: uppercase; color: var(--text3); margin-bottom: 7px;
   font-family: var(--mono);
 }
-.transcript-text { font-size: 13px; color: var(--text); line-height: 1.7; margin-bottom: 10px; }
+.transcript-text { font-size: 14px; color: var(--text); line-height: 1.7; margin-bottom: 10px; }
 .transcript-processing {
   display: flex; align-items: center; gap: 7px;
   font-size: 11px; color: var(--accent); font-family: var(--mono);
 }
 
-.voice-summary { width: 100%; max-width: 490px; margin-top: 10px; display: none; }
+.voice-summary { width: 100%; margin-top: 12px; display: none; }
 .voice-summary.visible { display: block; }
-
 .summary-title {
-  font-size: 9px; font-weight: 700;
-  letter-spacing: 1.5px; text-transform: uppercase;
-  color: var(--text3); margin-bottom: 7px; font-family: var(--mono);
+  font-size: 9px; font-weight: 700; letter-spacing: 1.5px;
+  text-transform: uppercase; color: var(--text3); margin-bottom: 8px;
+  font-family: var(--mono);
 }
-
 .summary-item {
   display: flex; align-items: center; gap: 10px;
-  padding: 8px 11px; border-radius: var(--rs);
-  margin-bottom: 4px;
+  padding: 9px 12px; border-radius: var(--rs); margin-bottom: 5px;
   background: var(--bg2); border: 1px solid var(--border);
-  font-size: 12px;
+  font-size: 13px;
 }
 .summary-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
 .summary-task { flex: 1; color: var(--text); }
@@ -376,14 +375,12 @@ html.dark .cat-btn.braindump { color: var(--text); }
 /* ── STATUS BAR ── */
 .statusbar {
   position: fixed; bottom: 0; left: 0; right: 0;
-  background: var(--bg);
-  border-top: 1px solid var(--border2);
-  padding: 7px 24px;
+  background: var(--bg); border-top: 1px solid var(--border2);
+  padding: 7px 28px;
   display: flex; align-items: center; justify-content: space-between;
-  z-index: 500;
+  z-index: 500; transition: background 0.25s, border-color 0.2s;
 }
-
-.status-left { min-width: 150px; }
+.status-left { min-width: 160px; }
 .status-label {
   font-size: 8px; font-weight: 700; letter-spacing: 1.5px;
   text-transform: uppercase; color: var(--text3);
@@ -391,15 +388,13 @@ html.dark .cat-btn.braindump { color: var(--text); }
 }
 .status-value {
   font-size: 11px; font-weight: 600; color: var(--text2);
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 190px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 220px;
 }
-
 .status-weather {
   flex: 1; text-align: center;
   font-size: 11px; color: var(--text2); font-family: var(--mono);
 }
-
-.status-clocks { display: flex; gap: 18px; align-items: center; }
+.status-clocks { display: flex; gap: 20px; align-items: center; }
 .clock-item { text-align: right; }
 .clock-city { font-size: 8px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text3); font-family: var(--mono); }
 .clock-time { font-size: 13px; font-weight: 700; color: var(--text); font-family: var(--mono); letter-spacing: 0.5px; }
@@ -407,26 +402,21 @@ html.dark .cat-btn.braindump { color: var(--text); }
 /* ── SETTINGS ── */
 .settings-overlay {
   position: fixed; inset: 0;
-  background: rgba(0,0,0,0.35);
-  backdrop-filter: blur(3px);
+  background: rgba(0,0,0,0.35); backdrop-filter: blur(3px);
   z-index: 800; display: none;
 }
 .settings-overlay.open { display: block; }
-
 .settings-panel {
   position: fixed; top: 50%; left: 50%;
   transform: translate(-50%, -50%);
-  background: var(--bg);
-  border: 1px solid var(--border2);
+  background: var(--bg); border: 1px solid var(--border2);
   border-radius: 14px; padding: 22px;
   width: min(370px, 92vw); z-index: 900; display: none;
   box-shadow: 0 8px 40px rgba(0,0,0,0.12);
 }
 .settings-panel.open { display: block; }
-
 .settings-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; }
 .settings-header h3 { font-size: 14px; font-weight: 700; }
-
 .settings-close {
   width: 26px; height: 26px; border-radius: var(--rs);
   border: 1px solid var(--border2); background: var(--bg2);
@@ -434,7 +424,6 @@ html.dark .cat-btn.braindump { color: var(--text); }
   display: flex; align-items: center; justify-content: center; font-size: 12px;
 }
 .settings-close:hover { color: var(--text); }
-
 .settings-field { margin-bottom: 13px; }
 .settings-field label {
   font-size: 9px; font-weight: 700; letter-spacing: 1px;
@@ -449,22 +438,20 @@ html.dark .cat-btn.braindump { color: var(--text); }
   transition: border-color 0.15s;
 }
 .settings-field input:focus { border-color: var(--accent); }
-
 .save-btn {
   width: 100%; padding: 9px;
-  background: var(--accent); color: #fff;
-  border: none; border-radius: var(--rs);
-  font-family: var(--font); font-size: 13px; font-weight: 700;
+  background: var(--accent); color: #fff; border: none;
+  border-radius: var(--rs); font-family: var(--font);
+  font-size: 13px; font-weight: 700;
   cursor: pointer; transition: background 0.15s; margin-top: 2px;
 }
 .save-btn:hover { background: var(--accent-d); }
 
-/* ── TOAST — bottom right, above status bar ── */
+/* ── TOAST — bottom right ── */
 .toast-container {
-  position: fixed; bottom: 68px; right: 18px;
-  z-index: 1000;
-  display: flex; flex-direction: column-reverse; gap: 7px;
-  pointer-events: none;
+  position: fixed; bottom: 68px; right: 20px;
+  z-index: 1000; display: flex; flex-direction: column-reverse;
+  gap: 7px; pointer-events: none;
 }
 .toast {
   padding: 9px 16px; border-radius: 40px;
@@ -480,8 +467,7 @@ html.dark .cat-btn.braindump { color: var(--text); }
 .dots { display: inline-flex; gap: 3px; align-items: center; }
 .dots span {
   width: 3px; height: 3px; border-radius: 50%;
-  background: var(--accent);
-  animation: dotBounce 1.2s infinite ease-in-out;
+  background: var(--accent); animation: dotBounce 1.2s infinite ease-in-out;
 }
 .dots span:nth-child(2) { animation-delay: 0.15s; }
 .dots span:nth-child(3) { animation-delay: 0.3s; }
@@ -490,32 +476,42 @@ html.dark .cat-btn.braindump { color: var(--text); }
 @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 @keyframes flashSuccess {
   0%   { filter: brightness(1); }
-  35%  { filter: brightness(1.35); }
+  35%  { filter: brightness(1.25); }
   100% { filter: brightness(1); }
 }
-@keyframes toastIn {
-  from { opacity: 0; transform: translateY(6px) scale(0.95); }
-  to   { opacity: 1; transform: translateY(0) scale(1); }
-}
-@keyframes toastOut { to { opacity: 0; transform: translateY(6px) scale(0.95); } }
+@keyframes toastIn  { from { opacity: 0; transform: translateY(6px) scale(0.95); } to { opacity: 1; transform: translateY(0) scale(1); } }
+@keyframes toastOut { to   { opacity: 0; transform: translateY(6px) scale(0.95); } }
 @keyframes dotBounce {
   0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; }
-  40%           { transform: scale(1); opacity: 1; }
+  40%           { transform: scale(1);   opacity: 1; }
 }
 
-/* ── RESPONSIVE ── */
-@media (max-width: 600px) {
-  .app { padding: 18px 15px 80px; }
+/* ── RESPONSIVE — tablet ── */
+@media (max-width: 860px) {
+  .app { padding: 22px 24px 84px; }
+  .text-layout { flex-direction: column; gap: 20px; }
+  .text-left { width: 100%; position: static; }
+  .text-right { width: 100%; }
   .cat-grid { grid-template-columns: repeat(3, 1fr); }
-  .cat-btn.braindump { grid-column: span 3; }
-  .status-weather { display: none; }
-  .greeting-text { font-size: 18px; }
-  .record-btn { width: 112px; height: 112px; }
-  .record-icon { font-size: 30px; }
+  .task-input { min-height: 80px; }
 }
-@media (max-width: 400px) {
-  .cat-grid { grid-template-columns: repeat(2, 1fr); }
-  .cat-btn.braindump { grid-column: span 2; }
+
+/* ── RESPONSIVE — mobile ── */
+@media (max-width: 600px) {
+  .app { padding: 18px 16px 80px; }
+  .greeting-text { font-size: 22px; }
+  .greeting-date { font-size: 11px; }
+  .task-input { font-size: 16px; min-height: 80px; }
+  .cat-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+  .cat-btn { min-height: 58px; font-size: 14px; padding: 0 12px 0 46px; }
+  .cat-emoji { font-size: 22px; left: 12px; }
+  .cat-btn.braindump { min-height: 64px; font-size: 15px; }
+  .board-btn { font-size: 13px; padding: 8px 14px; }
+  .status-weather { display: none; }
+  .record-btn { width: 116px; height: 116px; }
+  .record-icon { font-size: 34px; }
+  .mode-btn { font-size: 13px; padding: 7px 14px; }
+  .brand-name { font-size: 19px; }
 }
 </style>
 </head>
@@ -536,14 +532,14 @@ html.dark .cat-btn.braindump { color: var(--text); }
   </div>
   <button class="save-btn" onclick="saveSettings()">Save</button>
   <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border2);display:flex;justify-content:space-between;align-items:center;">
-    <button onclick="openChangelog()" style="font-size:10px;font-family:var(--mono);color:var(--accent);background:none;border:none;cursor:pointer;padding:0;text-decoration:underline;" id="versionBtn">v2.2.0</button>
+    <button onclick="openChangelog()" style="font-size:10px;font-family:var(--mono);color:var(--accent);background:none;border:none;cursor:pointer;padding:0;text-decoration:underline;">v2.3.0</button>
     <span style="font-size:10px;font-family:var(--mono);color:var(--text3);">2026-04-02 BST</span>
   </div>
 </div>
 
 <!-- CHANGELOG -->
 <div class="settings-overlay" id="changelogOverlay" onclick="closeChangelog()" style="display:none;z-index:850;"></div>
-<div id="changelogPanel" style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:var(--bg);border:1px solid var(--border2);border-radius:14px;padding:22px;width:min(450px,92vw);z-index:950;max-height:80vh;overflow-y:auto;box-shadow:0 8px 40px rgba(0,0,0,0.12);">
+<div id="changelogPanel" style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:var(--bg);border:1px solid var(--border2);border-radius:14px;padding:22px;width:min(450px,92vw);z-index:950;max-height:80vh;overflow-y:auto;box-shadow:0 8px 40px rgba(0,0,0,0.12);transition:background 0.25s;">
   <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
     <h3 style="font-size:14px;font-weight:700;">Changelog</h3>
     <button onclick="closeChangelog()" style="width:26px;height:26px;border-radius:var(--rs);border:1px solid var(--border2);background:var(--bg2);color:var(--text2);cursor:pointer;font-size:12px;">✕</button>
@@ -576,32 +572,41 @@ html.dark .cat-btn.braindump { color: var(--text); }
 
   <!-- TEXT MODE -->
   <div id="text-mode">
-    <div class="board-wrap">
-      <button class="board-btn active" data-board="backlog"   onclick="setBoard(this)">Backlog</button>
-      <button class="board-btn"        data-board="today"     onclick="setBoard(this)">Today</button>
-      <button class="board-btn"        data-board="this-week" onclick="setBoard(this)">This Week</button>
-    </div>
-    <div class="input-wrap">
-      <textarea class="task-input" id="taskInput" rows="1"
-        placeholder="What needs doing…"
-        onkeydown="handleKey(event)"
-        oninput="autoResize(this)"></textarea>
-    </div>
-    <div class="grid-label">→ tap a category to send</div>
-    <div class="cat-grid">
-      <button class="cat-btn" data-cat="Health"                onclick="sendTask(this)"><span class="cat-emoji">🏥</span>Health</button>
-      <button class="cat-btn" data-cat="Investments"           onclick="sendTask(this)"><span class="cat-emoji">📈</span>Investments</button>
-      <button class="cat-btn" data-cat="Personal Learning"     onclick="sendTask(this)"><span class="cat-emoji">🎓</span>Learning</button>
-      <button class="cat-btn" data-cat="Home"                  onclick="sendTask(this)"><span class="cat-emoji">🏠</span>Home</button>
-      <button class="cat-btn" data-cat="Admin Personal"        onclick="sendTask(this)"><span class="cat-emoji">🗂</span>Admin Personal</button>
-      <button class="cat-btn" data-cat="Admin Shared"          onclick="sendTask(this)"><span class="cat-emoji">🤝</span>Admin Shared</button>
-      <button class="cat-btn" data-cat="Returns"               onclick="sendTask(this)"><span class="cat-emoji">📦</span>Returns</button>
-      <button class="cat-btn" data-cat="numeri.ch"             onclick="sendTask(this)"><span class="cat-emoji">🇨🇭</span>numeri.ch</button>
-      <button class="cat-btn" data-cat="öpfinder"              onclick="sendTask(this)"><span class="cat-emoji">💡</span>öpfinder</button>
-      <button class="cat-btn" data-cat="Tech Projects"         onclick="sendTask(this)"><span class="cat-emoji">🛠</span>Tech Projects</button>
-      <button class="cat-btn" data-cat="Residents Association" onclick="sendTask(this)"><span class="cat-emoji">🏢</span>Residents</button>
-      <button class="cat-btn" data-cat="Friends & Family"      onclick="sendTask(this)"><span class="cat-emoji">👥</span>Friends & Family</button>
-      <button class="cat-btn braindump" data-cat="Braindump"   onclick="sendTask(this)"><span class="cat-emoji">🧠</span><span>Braindump</span></button>
+    <div class="text-layout">
+
+      <div class="text-left">
+        <div class="board-wrap">
+          <button class="board-btn active" data-board="backlog"   onclick="setBoard(this)">Backlog</button>
+          <button class="board-btn"        data-board="today"     onclick="setBoard(this)">Today</button>
+          <button class="board-btn"        data-board="this-week" onclick="setBoard(this)">This Week</button>
+        </div>
+        <div class="input-wrap">
+          <textarea class="task-input" id="taskInput" rows="1"
+            placeholder="What needs doing…"
+            onkeydown="handleKey(event)"
+            oninput="autoResize(this)"></textarea>
+        </div>
+      </div>
+
+      <div class="text-right">
+        <div class="grid-label">→ tap a category to send</div>
+        <div class="cat-grid">
+          <button class="cat-btn" data-cat="Health"                onclick="sendTask(this)"><span class="cat-emoji">🏥</span>Health</button>
+          <button class="cat-btn" data-cat="Investments"           onclick="sendTask(this)"><span class="cat-emoji">📈</span>Investments</button>
+          <button class="cat-btn" data-cat="Personal Learning"     onclick="sendTask(this)"><span class="cat-emoji">🎓</span>Personal Learning</button>
+          <button class="cat-btn" data-cat="Home"                  onclick="sendTask(this)"><span class="cat-emoji">🏠</span>Home</button>
+          <button class="cat-btn" data-cat="Admin Personal"        onclick="sendTask(this)"><span class="cat-emoji">🗂</span>Admin Personal</button>
+          <button class="cat-btn" data-cat="Admin Shared"          onclick="sendTask(this)"><span class="cat-emoji">🤝</span>Admin Shared</button>
+          <button class="cat-btn" data-cat="Returns"               onclick="sendTask(this)"><span class="cat-emoji">📦</span>Returns</button>
+          <button class="cat-btn" data-cat="numeri.ch"             onclick="sendTask(this)"><span class="cat-emoji">🇨🇭</span>numeri.ch</button>
+          <button class="cat-btn" data-cat="öpfinder"              onclick="sendTask(this)"><span class="cat-emoji">💡</span>öpfinder</button>
+          <button class="cat-btn" data-cat="Tech Projects"         onclick="sendTask(this)"><span class="cat-emoji">🛠</span>Tech Projects</button>
+          <button class="cat-btn" data-cat="Residents Association" onclick="sendTask(this)"><span class="cat-emoji">🏢</span>Residents Assoc.</button>
+          <button class="cat-btn" data-cat="Friends & Family"      onclick="sendTask(this)"><span class="cat-emoji">👥</span>Friends & Family</button>
+          <button class="cat-btn braindump" data-cat="Braindump"   onclick="sendTask(this)"><span class="cat-emoji">🧠</span>Braindump</button>
+        </div>
+      </div>
+
     </div>
   </div>
 
@@ -655,53 +660,40 @@ html.dark .cat-btn.braindump { color: var(--text); }
 <script>
 // ─── CONFIG ───────────────────────────────────────────────────
 const DEFAULT_WORKER = "https://rapid-frost-ae90.lgt-c0c.workers.dev";
-const VERSION = "2.2.0";
-const UPDATED = "2026-04-02 BST";
+const VERSION = "2.3.0";
 
 const CHANGELOG = [
+  { v: "2.3.0", date: "2026-04-02", notes: [
+    "Desktop two-column layout — input left, categories right, fills 16:9",
+    "Category buttons: icon pinned left, text centred, coloured left border, lighter tinted background",
+    "Braindump is now a full-width spacebar at the bottom of the grid",
+    "Mobile: bigger text (16px input, 22px greeting), 2-column grid, larger buttons",
+    "Auto dark/light theme by time of day (dark 8pm–7am) — manual toggle overrides",
+  ]},
   { v: "2.2.0", date: "2026-04-02", notes: [
-    "Brand redesign — light/dark mode with toggle, system fonts (Inter/-apple-system)",
-    "Sharp blue (#0047FF) replaces lime green as primary accent",
-    "Full date in header: day, date, month, year",
-    "Live London weather in status bar (wttr.in, updates every 10 min)",
-    "Clock label changed from Geneva to Europe",
-    "Last sent task now persisted across tab close and refresh",
-    "Toast notifications moved to bottom-right (brand spec)",
-    "CNAME added for task.opfinder.ch — mic now works over HTTPS",
-    "Removed decorative noise/orb overlays — brand says no decoration",
+    "Brand redesign — light/dark mode toggle, system fonts (Inter/-apple-system)",
+    "Sharp blue #0047FF accent, CNAME for task.opfinder.ch (mic fix)",
+    "Full date header, London weather, Europe clock, last task persisted",
   ]},
-  { v: "2.1.0", date: "2026-04-02", notes: [
-    "Switched categorisation to Groq llama-3.3-70b-versatile (70B — far more accurate)",
-    "Improved category prompt with descriptions — pet care now correctly goes to Home",
-    "Removed Test Mode",
-  ]},
-  { v: "2.0.0", date: "2026-04-02", notes: [
-    "Voice pipeline working end-to-end",
-    "Transcription: Groq Whisper large-v3-turbo",
-    "Categorisation: Cloudflare Workers AI with Groq fallback",
-    "Fixed duplicate function declarations that silently broke voice mode",
-    "All secrets server-side in worker",
-  ]},
-  { v: "1.9.0", date: "2026-04-02", notes: ["Groq API key fix, version correction"] },
-  { v: "1.4.0", date: "2026-04-02", notes: ["Groq Whisper + Gemini categorisation, settings panel"] },
-  { v: "1.2.0", date: "2026-04-02", notes: ["All 13 Blitzit webhooks via Cloudflare Worker"] },
-  { v: "1.0.0", date: "2026-04-01", notes: ["Initial build — text mode, 13 categories, Cloudflare Worker"] },
+  { v: "2.1.0", date: "2026-04-02", notes: ["Groq llama-3.3-70b categorisation, better category descriptions"] },
+  { v: "2.0.0", date: "2026-04-02", notes: ["Voice pipeline working, Groq Whisper, shared pipeline, no duplicate functions"] },
+  { v: "1.0.0", date: "2026-04-01", notes: ["Initial build"] },
 ];
 
 const CAT_COLORS = {
-  "Health": "#ff4d6d", "Investments": "#00c896", "Personal Learning": "#ffb830",
-  "Home": "#40d9a0", "Admin Personal": "#7c8cf8", "Admin Shared": "#a78bfa",
-  "Returns": "#fb923c", "numeri.ch": "#f87171", "öpfinder": "#38bdf8",
-  "Tech Projects": "#e879f9", "Residents Association": "#facc15",
-  "Friends & Family": "#f472b6", "Braindump": "#94a3b8"
+  "Health":"#E8294A","Investments":"#009E76","Personal Learning":"#C98A00",
+  "Home":"#2BA87A","Admin Personal":"#5566E8","Admin Shared":"#8B6FE8",
+  "Returns":"#D96A1A","numeri.ch":"#D94040","öpfinder":"#0EA5D6",
+  "Tech Projects":"#C044D8","Residents Association":"#B89600",
+  "Friends & Family":"#D43F8C","Braindump":"#6B7280"
 };
 
 // ─── STATE ────────────────────────────────────────────────────
-let currentBoard   = "backlog";
-let currentMode    = "text";
-let isRecording    = false;
-let mediaRecorder  = null;
-let audioChunks    = [];
+let currentBoard  = "backlog";
+let currentMode   = "text";
+let isRecording   = false;
+let mediaRecorder = null;
+let audioChunks   = [];
 
 // ─── INIT ─────────────────────────────────────────────────────
 document.addEventListener("DOMContentLoaded", () => {
@@ -712,29 +704,36 @@ document.addEventListener("DOMContentLoaded", () => {
   fetchWeather();
   setInterval(fetchWeather, 10 * 60 * 1000);
 
-  // Restore last task
   const saved = localStorage.getItem("lastTask");
   if (saved) document.getElementById("lastTask").textContent = saved;
 
-  // Desktop → text, mobile → voice
   if (window.innerWidth <= 600) setMode("voice");
 
   document.getElementById("workerUrlInput").value = localStorage.getItem("workerUrl") || DEFAULT_WORKER;
 });
 
 // ─── THEME ────────────────────────────────────────────────────
+// Auto-detect by time; manual toggle overrides for the session (saved to localStorage)
+function getAutoTheme() {
+  const h = new Date().getHours();
+  return (h >= 20 || h < 7) ? "dark" : "light";
+}
+
 function initTheme() {
-  applyTheme(localStorage.getItem("theme") || "light");
+  // Use saved preference, or fall back to time-based auto
+  const saved = localStorage.getItem("theme");
+  applyTheme(saved || getAutoTheme(), false);
 }
 
 function toggleTheme() {
-  applyTheme(document.documentElement.classList.contains("dark") ? "light" : "dark");
+  const isDark = document.documentElement.classList.contains("dark");
+  applyTheme(isDark ? "light" : "dark", true);
 }
 
-function applyTheme(t) {
+function applyTheme(t, save) {
   document.documentElement.classList.toggle("dark", t === "dark");
   document.getElementById("themeBtn").textContent = t === "dark" ? "☀️" : "🌙";
-  localStorage.setItem("theme", t);
+  if (save) localStorage.setItem("theme", t);
 }
 
 // ─── GREETING ─────────────────────────────────────────────────
@@ -760,29 +759,27 @@ async function fetchWeather() {
   try {
     const res = await fetch("https://wttr.in/London?format=j1");
     if (!res.ok) return;
-    const d   = await res.json();
-    const cc  = d.current_condition[0];
-    const icon = weatherEmoji(cc.weatherDesc[0].value);
+    const d  = await res.json();
+    const cc = d.current_condition[0];
     document.getElementById("weatherDisplay").textContent =
-      icon + " " + cc.temp_C + "°C · London";
-  } catch(e) { /* fail silently */ }
+      weatherEmoji(cc.weatherDesc[0].value) + " " + cc.temp_C + "°C · London";
+  } catch(e) {}
 }
-
 function weatherEmoji(desc) {
   const d = desc.toLowerCase();
-  if (d.includes("sunny") || d.includes("clear"))               return "☀️";
-  if (d.includes("partly"))                                      return "⛅";
-  if (d.includes("overcast") || d.includes("cloudy"))           return "☁️";
-  if (d.includes("thunder") || d.includes("storm"))             return "⛈️";
-  if (d.includes("snow") || d.includes("blizzard"))             return "❄️";
-  if (d.includes("sleet") || d.includes("ice"))                 return "🌨️";
+  if (d.includes("sunny") || d.includes("clear"))                        return "☀️";
+  if (d.includes("partly"))                                               return "⛅";
+  if (d.includes("overcast") || d.includes("cloudy"))                    return "☁️";
+  if (d.includes("thunder") || d.includes("storm"))                      return "⛈️";
+  if (d.includes("snow") || d.includes("blizzard"))                      return "❄️";
+  if (d.includes("sleet") || d.includes("ice"))                          return "🌨️";
   if (d.includes("rain") || d.includes("drizzle") || d.includes("shower")) return "🌧️";
-  if (d.includes("fog") || d.includes("mist") || d.includes("haze")) return "🌫️";
-  if (d.includes("wind"))                                        return "💨";
+  if (d.includes("fog") || d.includes("mist") || d.includes("haze"))    return "🌫️";
+  if (d.includes("wind"))                                                 return "💨";
   return "🌤️";
 }
 
-// ─── MODE SWITCH ──────────────────────────────────────────────
+// ─── MODE ─────────────────────────────────────────────────────
 function setMode(mode) {
   currentMode = mode;
   document.getElementById("text-mode").style.display  = mode === "text"  ? "block" : "none";
@@ -803,7 +800,6 @@ function autoResize(el) {
   el.style.height = "auto";
   el.style.height = el.scrollHeight + "px";
 }
-
 function handleKey(e) {
   if (e.key === "Enter" && !e.shiftKey) e.preventDefault();
 }
@@ -813,10 +809,8 @@ async function sendTask(btn) {
   const input = document.getElementById("taskInput");
   const title = input.value.trim();
   if (!title) { showToast("Type a task first", "info"); return; }
-
   const cat = btn.dataset.cat;
   btn.classList.add("sending");
-
   try {
     await postToBlitzit(title, cat, currentBoard);
     btn.classList.remove("sending");
@@ -833,11 +827,11 @@ async function sendTask(btn) {
   }
 }
 
-// ─── POST TO BLITZIT VIA WORKER ───────────────────────────────
+// ─── POST TO BLITZIT ──────────────────────────────────────────
 async function postToBlitzit(title, category, board = "backlog") {
   const url = localStorage.getItem("workerUrl") || DEFAULT_WORKER;
   const res  = await fetch(url, {
-    method:  "POST",
+    method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       action: "create", title, board,
@@ -859,17 +853,13 @@ function setLastTask(text) {
 async function runPipeline(audioBlob, onStep) {
   const url = localStorage.getItem("workerUrl") || DEFAULT_WORKER;
 
-  // Step 1: Transcribe
   onStep("transcribe", "loading", null);
   let transcript;
   try {
     const fd = new FormData();
     fd.append("file", new File([audioBlob], "audio.webm", { type: audioBlob.type || "audio/webm" }));
     const res = await fetch(url, { method: "POST", headers: { "X-Action": "transcribe" }, body: fd });
-    if (!res.ok) {
-      onStep("transcribe", "error", "HTTP " + res.status + ": " + (await res.text()).slice(0, 100));
-      throw new Error("transcribe_failed");
-    }
+    if (!res.ok) { onStep("transcribe", "error", "HTTP " + res.status); throw new Error("transcribe_failed"); }
     transcript = (await res.text()).trim();
     if (!transcript) { onStep("transcribe", "error", "No speech detected"); throw new Error("no_speech"); }
     onStep("transcribe", "done", transcript);
@@ -878,7 +868,6 @@ async function runPipeline(audioBlob, onStep) {
     throw e;
   }
 
-  // Step 2: Categorise
   onStep("categorise", "loading", null);
   let tasks, board;
   try {
@@ -887,13 +876,9 @@ async function runPipeline(audioBlob, onStep) {
       headers: { "Content-Type": "application/json", "X-Action": "categorise" },
       body: JSON.stringify({ transcript })
     });
-    if (!res.ok) {
-      onStep("categorise", "error", "HTTP " + res.status);
-      throw new Error("categorise_failed");
-    }
+    if (!res.ok) { onStep("categorise", "error", "HTTP " + res.status); throw new Error("categorise_failed"); }
     let raw = (await res.text()).trim().replace(/^```(?:json)?\s*/i,"").replace(/\s*```$/,"").trim();
-    const m = raw.match(/\{[\s\S]*\}/);
-    if (m) raw = m[0];
+    const m = raw.match(/\{[\s\S]*\}/); if (m) raw = m[0];
     const parsed = JSON.parse(raw);
     board = parsed.board || "backlog";
     tasks = parsed.tasks || [];
@@ -905,7 +890,6 @@ async function runPipeline(audioBlob, onStep) {
 
   if (!tasks.length) { onStep("blitzit", "error", "No tasks extracted"); return []; }
 
-  // Step 3: Send to Blitzit
   onStep("blitzit", "loading", null);
   const results = [];
   await Promise.all(tasks.map(async t => {
@@ -917,9 +901,7 @@ async function runPipeline(audioBlob, onStep) {
 }
 
 // ─── VOICE MODE ───────────────────────────────────────────────
-function toggleRecord() {
-  if (isRecording) stopRecording(); else startRecording();
-}
+function toggleRecord() { if (isRecording) stopRecording(); else startRecording(); }
 
 async function startRecording() {
   try {
@@ -936,9 +918,7 @@ async function startRecording() {
     document.getElementById("voiceSummary").classList.remove("visible");
     document.getElementById("transcriptBox").classList.remove("visible");
     document.getElementById("summaryItems").innerHTML = "";
-  } catch(err) {
-    showToast("Mic access denied", "error");
-  }
+  } catch(err) { showToast("Mic access denied", "error"); }
 }
 
 function stopRecording() {
@@ -953,20 +933,16 @@ function stopRecording() {
 }
 
 async function processVoice() {
-  const mimeType = mediaRecorder?.mimeType || "audio/webm";
-  const blob     = new Blob(audioChunks, { type: mimeType });
-
+  const blob = new Blob(audioChunks, { type: mediaRecorder?.mimeType || "audio/webm" });
   document.getElementById("transcriptBox").classList.add("visible");
   document.getElementById("transcriptText").textContent        = "Transcribing…";
   document.getElementById("processingIndicator").style.display = "flex";
-
   try {
     await runPipeline(blob, (step, status, data) => {
       if (step === "transcribe") {
-        if (status === "done") {
-          document.getElementById("transcriptText").textContent = data;
-        } else if (status === "error") {
-          document.getElementById("transcriptText").textContent        = "Error: " + data;
+        if (status === "done")  document.getElementById("transcriptText").textContent = data;
+        if (status === "error") {
+          document.getElementById("transcriptText").textContent = "Error: " + data;
           document.getElementById("processingIndicator").style.display = "none";
           showToast("Transcription failed", "error");
         }
@@ -994,7 +970,7 @@ function showVoiceSummary(results) {
   results.forEach(r => {
     const div = document.createElement("div");
     div.className = "summary-item";
-    const color = CAT_COLORS[r.category] || "#94a3b8";
+    const color = CAT_COLORS[r.category] || "#6B7280";
     div.innerHTML = `<div class="summary-dot" style="background:${color}"></div><div class="summary-task">${r.title}</div><div class="summary-cat">${r.category}</div><div class="summary-status">${r.ok?"✓":"✗"}</div>`;
     itemsEl.appendChild(div);
   });
@@ -1015,12 +991,10 @@ function openSettings() {
   document.getElementById("settingsOverlay").classList.add("open");
   document.getElementById("settingsPanel").classList.add("open");
 }
-
 function closeSettings() {
   document.getElementById("settingsOverlay").classList.remove("open");
   document.getElementById("settingsPanel").classList.remove("open");
 }
-
 function saveSettings() {
   const w = document.getElementById("workerUrlInput").value.trim();
   if (w) localStorage.setItem("workerUrl", w);
@@ -1045,7 +1019,6 @@ function openChangelog() {
   document.getElementById("changelogPanel").style.display   = "block";
   closeSettings();
 }
-
 function closeChangelog() {
   document.getElementById("changelogOverlay").style.display = "none";
   document.getElementById("changelogPanel").style.display   = "none";
@@ -1053,15 +1026,11 @@ function closeChangelog() {
 
 // ─── TOAST ────────────────────────────────────────────────────
 function showToast(msg, type = "info", duration = 2600) {
-  const c     = document.getElementById("toastContainer");
-  const toast = document.createElement("div");
-  toast.className   = `toast ${type}`;
-  toast.textContent = msg;
-  c.appendChild(toast);
-  setTimeout(() => {
-    toast.classList.add("out");
-    setTimeout(() => toast.remove(), 220);
-  }, duration);
+  const c = document.getElementById("toastContainer");
+  const t = document.createElement("div");
+  t.className = `toast ${type}`; t.textContent = msg;
+  c.appendChild(t);
+  setTimeout(() => { t.classList.add("out"); setTimeout(() => t.remove(), 220); }, duration);
 }
 </script>
 </body>
