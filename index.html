@@ -766,8 +766,8 @@ body::before {
   </div>
   <button class="save-btn" onclick="saveSettings()">Save Settings</button>
   <div style="margin-top:16px; padding-top:16px; border-top:1px solid var(--border); display:flex; justify-content:space-between; align-items:center;">
-    <button onclick="openChangelog()" style="font-size:10px; font-family:var(--mono); color:var(--accent); background:none; border:none; cursor:pointer; padding:0; text-decoration:underline;" id="versionBtn">v1.7.0</button>
-    <span style="font-size:10px; font-family:var(--mono); color:var(--muted);">Updated 2026-04-02 05:00 BST</span>
+    <button onclick="openChangelog()" style="font-size:10px; font-family:var(--mono); color:var(--accent); background:none; border:none; cursor:pointer; padding:0; text-decoration:underline;" id="versionBtn">v1.8.0</button>
+    <span style="font-size:10px; font-family:var(--mono); color:var(--muted);">Updated 2026-04-02 06:00 BST</span>
   </div>
 </div>
 
@@ -845,7 +845,7 @@ body::before {
   <div id="voice-mode">
     <div class="voice-container">
       <div class="voice-title">Voice Capture</div>
-      <div class="voice-subtitle">Dump everything on your mind. <strong>Speak naturally</strong> — browser transcribes live, Gemini categorises automatically.</div>
+      <div class="voice-subtitle">Dump everything on your mind. <strong>Deepgram transcribes, Gemini categorises</strong> — all automatic.</div>
 
       <button class="record-btn" id="recordBtn" onclick="toggleRecord()">
         <div class="record-inner">
@@ -896,7 +896,7 @@ body::before {
 const DEFAULT_WORKER = "https://rapid-frost-ae90.lgt-c0c.workers.dev";
 const DEFAULT_GEMINI = "";  // Set in Settings panel
 
-const VERSION = "1.7.0";
+const VERSION = "1.8.0";
 const UPDATED = "2026-04-02 04:00 BST";
 
 const CHANGELOG = [
@@ -1083,8 +1083,200 @@ async function postToBlitzit(title, category, board = "backlog") {
   return res;
 }
 
+// ─── VOICE RECORDING (MediaRecorder) ────────────────────────
+let mediaRecorder = null;
+let audioChunks   = [];
+
+function toggleRecord() {
+  if (isRecording) stopRecording();
+  else startRecording();
+}
+
+async function startRecording() {
+  try {
+    const stream  = await navigator.mediaDevices.getUserMedia({ audio: true });
+    audioChunks   = [];
+    mediaRecorder = new MediaRecorder(stream);
+    mediaRecorder.ondataavailable = e => { if (e.data.size > 0) audioChunks.push(e.data); };
+    mediaRecorder.onstop = processVoice;
+    mediaRecorder.start();
+    isRecording = true;
+
+    document.getElementById("recordBtn").classList.add("recording");
+    document.getElementById("recordIcon").textContent  = "⏹";
+    document.getElementById("recordLabel").textContent = "tap to stop";
+    document.getElementById("voiceSummary").classList.remove("visible");
+    document.getElementById("transcriptBox").classList.remove("visible");
+    document.getElementById("summaryItems").innerHTML = "";
+  } catch(err) {
+    showToast("Mic access denied", "error");
+  }
+}
+
+function stopRecording() {
+  if (mediaRecorder && mediaRecorder.state !== "inactive") {
+    mediaRecorder.stop();
+    mediaRecorder.stream.getTracks().forEach(t => t.stop());
+  }
+  isRecording = false;
+  document.getElementById("recordBtn").classList.remove("recording");
+  document.getElementById("recordIcon").textContent  = "⏳";
+  document.getElementById("recordLabel").textContent = "processing…";
+}
+
+async function processVoice() {
+  const mimeType = mediaRecorder?.mimeType || "audio/webm";
+  const blob     = new Blob(audioChunks, { type: mimeType });
+
+  const tbox = document.getElementById("transcriptBox");
+  tbox.classList.add("visible");
+  document.getElementById("transcriptText").textContent = "Transcribing…";
+  document.getElementById("processingIndicator").style.display = "flex";
+
+  try {
+    // Step 1: Deepgram via worker
+    const workerUrl = localStorage.getItem("workerUrl") || DEFAULT_WORKER;
+    const formData  = new FormData();
+    formData.append("file", new File([blob], "audio.webm", { type: mimeType }));
+
+    const dgRes = await fetch(workerUrl, {
+      method:  "POST",
+      headers: { "X-Action": "transcribe" },
+      body:    formData
+    });
+
+    if (!dgRes.ok) {
+      const err = await dgRes.text();
+      document.getElementById("transcriptText").textContent = "Transcription error: " + err;
+      document.getElementById("processingIndicator").style.display = "none";
+      showToast("Transcription failed", "error");
+      resetRecordBtn();
+      return;
+    }
+
+    const transcript = (await dgRes.text()).trim();
+    document.getElementById("transcriptText").textContent = transcript || "(no speech detected)";
+
+    if (!transcript) {
+      document.getElementById("processingIndicator").style.display = "none";
+      showToast("No speech detected", "info");
+      resetRecordBtn();
+      return;
+    }
+
+    // Step 2: Gemini categorisation (text only)
+    await processTranscript(transcript);
+
+  } catch(err) {
+    console.error(err);
+    document.getElementById("processingIndicator").style.display = "none";
+    showToast("Error: " + err.message, "error");
+    resetRecordBtn();
+  }
+}
+
+function resetRecordBtn() {
+  document.getElementById("recordIcon").textContent  = "🎙";
+  document.getElementById("recordLabel").textContent = "tap to record";
+}
+
+function blobToBase64(blob) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload  = () => resolve(reader.result);
+    reader.onerror = reject;
+    reader.readAsDataURL(blob);
+  });
+}
+
+
+function updateGreeting() {
+  const days = ["SUNDAY","MONDAY","TUESDAY","WEDNESDAY","THURSDAY","FRIDAY","SATURDAY"];
+  const now  = new Date();
+  document.getElementById("greetingTime").textContent =
+    days[now.getDay()] + " · LONDON";
+}
+
+// ─── CLOCKS ───────────────────────────────────────────────────
+function updateClocks() {
+  const fmt = tz => new Date().toLocaleTimeString("en-GB", {
+    timeZone: tz, hour: "2-digit", minute: "2-digit", hour12: false
+  });
+  document.getElementById("clockLondon").textContent = fmt("Europe/London");
+  document.getElementById("clockGeneva").textContent = fmt("Europe/Zurich");
+}
+
+// ─── MODE SWITCH ──────────────────────────────────────────────
+function setMode(mode) {
+  currentMode = mode;
+  document.getElementById("text-mode").style.display  = mode === "text"  ? "block" : "none";
+  document.getElementById("voice-mode").style.display = mode === "voice" ? "block" : "none";
+  document.getElementById("textModeBtn").classList.toggle("active",  mode === "text");
+  document.getElementById("voiceModeBtn").classList.toggle("active", mode === "voice");
+}
+
+// ─── BOARD ────────────────────────────────────────────────────
+function setBoard(btn) {
+  currentBoard = btn.dataset.board;
+  document.querySelectorAll(".board-btn").forEach(b => b.classList.remove("active"));
+  btn.classList.add("active");
+}
+
+// ─── INPUT RESIZE ─────────────────────────────────────────────
+function autoResize(el) {
+  el.style.height = "auto";
+  el.style.height = el.scrollHeight + "px";
+}
+
+function handleKey(e) {
+  if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); }
+}
+
+// ─── SEND TASK (Text Mode) ────────────────────────────────────
+async function sendTask(btn) {
+  const input = document.getElementById("taskInput");
+  const title = input.value.trim();
+  if (!title) { showToast("Type a task first", "info"); return; }
+
+  const cat = btn.dataset.cat;
+  btn.classList.add("sending");
+
+  try {
+    await postToBlitzit(title, cat, currentBoard);
+    btn.classList.remove("sending");
+    btn.classList.add("success-flash");
+    setTimeout(() => btn.classList.remove("success-flash"), 700);
+    document.getElementById("lastTask").textContent = `${title} → ${cat}`;
+    input.value = "";
+    input.style.height = "auto";
+    showToast(`✓ ${cat}`, "success");
+  } catch (err) {
+    btn.classList.remove("sending");
+    showToast("Failed to send — check worker URL", "error");
+    console.error(err);
+  }
+}
+
+// ─── POST TO BLITZIT VIA WORKER ───────────────────────────────
+async function postToBlitzit(title, category, board = "backlog") {
+  const url = localStorage.getItem("workerUrl") || DEFAULT_WORKER;
+  const res  = await fetch(url, {
+    method:  "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      action:   "create",
+      title:    title,
+      board:    board,
+      id:       "flink-" + Date.now() + "-" + Math.random().toString(36).slice(2,7),
+      source:   "Flink",
+      category: category
+    })
+  });
+  if (!res.ok) throw new Error("Worker responded " + res.status);
+  return res;
+}
+
 // ─── VOICE RECORDING (Web Speech API) ────────────────────────
-let recognition = null;
 
 function toggleRecord() {
   if (isRecording) {
@@ -1094,79 +1286,7 @@ function toggleRecord() {
   }
 }
 
-function startRecording() {
-  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if (!SpeechRecognition) {
-    showToast("Voice not supported — use Chrome or Safari", "error");
-    return;
-  }
 
-  recognition = new SpeechRecognition();
-  recognition.continuous     = true;
-  recognition.interimResults = true;
-  recognition.lang           = "en-GB";
-
-  let finalTranscript = "";
-
-  recognition.onstart = () => {
-    isRecording = true;
-    const btn   = document.getElementById("recordBtn");
-    const icon  = document.getElementById("recordIcon");
-    const label = document.getElementById("recordLabel");
-    btn.classList.add("recording");
-    icon.textContent  = "⏹";
-    label.textContent = "listening…";
-    document.getElementById("voiceSummary").classList.remove("visible");
-    document.getElementById("transcriptBox").classList.remove("visible");
-    document.getElementById("summaryItems").innerHTML = "";
-  };
-
-  recognition.onresult = (event) => {
-    let interim = "";
-    finalTranscript = "";
-    for (let i = 0; i < event.results.length; i++) {
-      if (event.results[i].isFinal) {
-        finalTranscript += event.results[i][0].transcript + " ";
-      } else {
-        interim += event.results[i][0].transcript;
-      }
-    }
-    // Show live transcript
-    const tbox = document.getElementById("transcriptBox");
-    tbox.classList.add("visible");
-    document.getElementById("transcriptText").textContent = (finalTranscript + interim).trim() || "Listening…";
-  };
-
-  recognition.onerror = (event) => {
-    showToast("Mic error: " + event.error, "error");
-    resetRecordBtn();
-    isRecording = false;
-  };
-
-  recognition.onend = () => {
-    isRecording = false;
-    resetRecordBtn();
-    const transcript = finalTranscript.trim();
-    if (transcript) {
-      processTranscript(transcript);
-    } else {
-      showToast("No speech detected", "info");
-    }
-  };
-
-  recognition.start();
-}
-
-function stopRecording() {
-  if (recognition) recognition.stop();
-  isRecording = false;
-  const btn   = document.getElementById("recordBtn");
-  const icon  = document.getElementById("recordIcon");
-  const label = document.getElementById("recordLabel");
-  btn.classList.remove("recording");
-  icon.textContent  = "⏳";
-  label.textContent = "processing…";
-}
 
 async function processTranscript(transcript) {
   const geminiKey  = localStorage.getItem("geminiKey") || DEFAULT_GEMINI;
