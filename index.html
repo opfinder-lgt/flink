@@ -201,7 +201,6 @@ body::before {
 /* ===== TEXT MODE ===== */
 #text-mode  { animation: fadeIn 0.3s ease both; }
 #voice-mode { display: none; animation: fadeIn 0.3s ease both; }
-#test-mode  { display: none; animation: fadeIn 0.3s ease both; }
 
 /* BOARD SELECTOR */
 .board-wrap {
@@ -533,79 +532,6 @@ body::before {
 
 .summary-status { font-size: 14px; }
 
-/* ===== TEST MODE ===== */
-.test-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 20px 0 40px;
-  gap: 24px;
-  width: 100%;
-}
-
-.test-run-btn {
-  padding: 16px 40px;
-  background: var(--accent);
-  color: var(--bg);
-  border: none;
-  border-radius: var(--radius);
-  font-family: var(--font);
-  font-size: 15px;
-  font-weight: 700;
-  cursor: pointer;
-  transition: opacity 0.2s;
-  letter-spacing: 0.3px;
-}
-.test-run-btn:hover { opacity: 0.88; }
-.test-run-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-
-.test-results {
-  display: none;
-  flex-direction: column;
-  gap: 12px;
-  width: 100%;
-  max-width: 600px;
-}
-
-.test-step {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 16px 20px;
-  transition: border-color 0.3s;
-}
-.test-step.done  { border-color: rgba(200,241,53,0.3); }
-.test-step.error { border-color: rgba(255,77,109,0.3); }
-.test-step.loading { border-color: rgba(200,241,53,0.1); }
-
-.test-step-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 10px;
-}
-
-.test-step-label {
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 1.5px;
-  text-transform: uppercase;
-  color: var(--muted);
-  font-family: var(--mono);
-}
-
-.test-step-status { font-size: 16px; }
-
-.test-step-body {
-  font-size: 12px;
-  color: var(--text);
-  font-family: var(--mono);
-  white-space: pre-wrap;
-  word-break: break-word;
-  line-height: 1.6;
-  max-height: 180px;
-  overflow-y: auto;
-}
 
 /* STATUS BAR */
 .statusbar {
@@ -834,8 +760,8 @@ body::before {
   </div>
   <button class="save-btn" onclick="saveSettings()">Save Settings</button>
   <div style="margin-top:16px; padding-top:16px; border-top:1px solid var(--border); display:flex; justify-content:space-between; align-items:center;">
-    <button onclick="openChangelog()" style="font-size:10px; font-family:var(--mono); color:var(--accent); background:none; border:none; cursor:pointer; padding:0; text-decoration:underline;" id="versionBtn">v2.0.0</button>
-    <span style="font-size:10px; font-family:var(--mono); color:var(--muted);">Updated 2026-04-02 12:00 BST</span>
+    <button onclick="openChangelog()" style="font-size:10px; font-family:var(--mono); color:var(--accent); background:none; border:none; cursor:pointer; padding:0; text-decoration:underline;" id="versionBtn">v2.1.0</button>
+    <span style="font-size:10px; font-family:var(--mono); color:var(--muted);">Updated 2026-04-02 13:00 BST</span>
   </div>
 </div>
 
@@ -862,7 +788,6 @@ body::before {
       <div class="mode-toggle">
         <button class="mode-btn active" id="textModeBtn"  onclick="setMode('text')">✏️ Text</button>
         <button class="mode-btn"        id="voiceModeBtn" onclick="setMode('voice')">🎙 Voice</button>
-        <button class="mode-btn"        id="testModeBtn"  onclick="setMode('test')">🧪 Test</button>
       </div>
       <button class="icon-btn" onclick="openSettings()" title="Settings">⚙️</button>
     </div>
@@ -939,39 +864,6 @@ body::before {
     </div>
   </div>
 
-  <!-- TEST MODE -->
-  <div id="test-mode">
-    <div class="test-container">
-      <div class="voice-title">Pipeline Test</div>
-      <div class="voice-subtitle">Runs the full voice pipeline using <strong>test-audio.webm</strong> — no microphone needed.</div>
-
-      <button class="test-run-btn" id="testRunBtn" onclick="runPipelineTest()">Run Pipeline Test</button>
-
-      <div class="test-results" id="testResults">
-        <div class="test-step" id="testStep1">
-          <div class="test-step-header">
-            <div class="test-step-label">Step 1 — Transcript</div>
-            <div class="test-step-status" id="testStatus1">—</div>
-          </div>
-          <div class="test-step-body" id="testBody1"></div>
-        </div>
-        <div class="test-step" id="testStep2">
-          <div class="test-step-header">
-            <div class="test-step-label">Step 2 — Categorised Tasks</div>
-            <div class="test-step-status" id="testStatus2">—</div>
-          </div>
-          <div class="test-step-body" id="testBody2"></div>
-        </div>
-        <div class="test-step" id="testStep3">
-          <div class="test-step-header">
-            <div class="test-step-label">Step 3 — Blitzit Results</div>
-            <div class="test-step-status" id="testStatus3">—</div>
-          </div>
-          <div class="test-step-body" id="testBody3"></div>
-        </div>
-      </div>
-    </div>
-  </div>
 
 </div>
 
@@ -997,10 +889,15 @@ body::before {
 <script>
 // ─── CONFIG ───────────────────────────────────────────────────
 const DEFAULT_WORKER = "https://rapid-frost-ae90.lgt-c0c.workers.dev";
-const VERSION = "2.0.0";
-const UPDATED = "2026-04-02 12:00 BST";
+const VERSION = "2.1.0";
+const UPDATED = "2026-04-02 13:00 BST";
 
 const CHANGELOG = [
+  { v: "2.1.0", date: "2026-04-02", notes: [
+    "Switched categorisation to Groq llama-3.3-70b-versatile (70B model — far more accurate)",
+    "Improved category prompt with descriptions — pet care now correctly goes to Home, not Health",
+    "Removed Test Mode (no audio file available in browser context)",
+  ]},
   { v: "2.0.0", date: "2026-04-02", notes: [
     "Voice pipeline working end-to-end",
     "Transcription: Groq Whisper large-v3-turbo (cleaner output, no repeated words)",
@@ -1074,10 +971,8 @@ function setMode(mode) {
   currentMode = mode;
   document.getElementById("text-mode").style.display  = mode === "text"  ? "block" : "none";
   document.getElementById("voice-mode").style.display = mode === "voice" ? "block" : "none";
-  document.getElementById("test-mode").style.display  = mode === "test"  ? "block" : "none";
   document.getElementById("textModeBtn").classList.toggle("active",  mode === "text");
   document.getElementById("voiceModeBtn").classList.toggle("active", mode === "voice");
-  document.getElementById("testModeBtn").classList.toggle("active",  mode === "test");
 }
 
 // ─── BOARD ────────────────────────────────────────────────────
@@ -1322,74 +1217,6 @@ function showVoiceSummary(results) {
 function resetRecordBtn() {
   document.getElementById("recordIcon").textContent  = "🎙";
   document.getElementById("recordLabel").textContent = "tap to record";
-}
-
-// ─── TEST MODE ────────────────────────────────────────────────
-function testStep(stepId, statusId, bodyId, status, data) {
-  const el = document.getElementById(stepId);
-  el.className = "test-step " + status;
-  document.getElementById(statusId).textContent = status === "loading" ? "⏳" : status === "done" ? "✓" : status === "error" ? "✗" : "—";
-  document.getElementById(bodyId).textContent   = data || "";
-}
-
-async function runPipelineTest() {
-  const btn = document.getElementById("testRunBtn");
-  btn.disabled    = true;
-  btn.textContent = "Running…";
-
-  // Reset
-  document.getElementById("testResults").style.display = "flex";
-  ["testStep1","testStep2","testStep3"].forEach((id, i) => {
-    document.getElementById(id).className = "test-step";
-    document.getElementById("testStatus" + (i+1)).textContent = "—";
-    document.getElementById("testBody"   + (i+1)).textContent = "";
-  });
-
-  try {
-    const response = await fetch("test-audio.webm");
-    if (!response.ok) throw new Error("Could not fetch test-audio.webm (HTTP " + response.status + ")");
-    const audioBlob = await response.blob();
-
-    await runPipeline(audioBlob, (step, status, data) => {
-      if (step === "transcribe") {
-        if (status === "loading") {
-          testStep("testStep1","testStatus1","testBody1", "loading", "Sending audio to worker…");
-        } else if (status === "done") {
-          testStep("testStep1","testStatus1","testBody1", "done", data);
-        } else {
-          testStep("testStep1","testStatus1","testBody1", "error", data);
-        }
-      }
-      if (step === "categorise") {
-        if (status === "loading") {
-          testStep("testStep2","testStatus2","testBody2", "loading", "Categorising with AI…");
-        } else if (status === "done") {
-          testStep("testStep2","testStatus2","testBody2", "done", data);
-        } else {
-          testStep("testStep2","testStatus2","testBody2", "error", data);
-        }
-      }
-      if (step === "blitzit") {
-        if (status === "loading") {
-          testStep("testStep3","testStatus3","testBody3", "loading", "Sending to Blitzit…");
-        } else if (status === "done" && Array.isArray(data)) {
-          const ok  = data.filter(r => r.ok).length;
-          const txt = data.map(r => (r.ok ? "✓" : "✗") + " " + r.title + " → " + r.category).join("\n");
-          testStep("testStep3","testStatus3","testBody3", ok === data.length ? "done" : "error", txt);
-          document.getElementById("lastTask").textContent = ok + "/" + data.length + " tasks sent (test)";
-          showToast("Test done: " + ok + "/" + data.length + " sent", ok === data.length ? "success" : "info");
-        } else if (status === "error") {
-          testStep("testStep3","testStatus3","testBody3", "error", data);
-        }
-      }
-    });
-  } catch(err) {
-    console.error("Test pipeline error:", err);
-    showToast("Test failed: " + err.message, "error");
-  }
-
-  btn.disabled    = false;
-  btn.textContent = "Run Pipeline Test";
 }
 
 // ─── SETTINGS ─────────────────────────────────────────────────
