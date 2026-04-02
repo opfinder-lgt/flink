@@ -199,8 +199,9 @@ body::before {
 .greeting-text .accent { color: var(--accent); }
 
 /* ===== TEXT MODE ===== */
-#text-mode { animation: fadeIn 0.3s ease both; }
+#text-mode  { animation: fadeIn 0.3s ease both; }
 #voice-mode { display: none; animation: fadeIn 0.3s ease both; }
+#test-mode  { display: none; animation: fadeIn 0.3s ease both; }
 
 /* BOARD SELECTOR */
 .board-wrap {
@@ -532,6 +533,80 @@ body::before {
 
 .summary-status { font-size: 14px; }
 
+/* ===== TEST MODE ===== */
+.test-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px 0 40px;
+  gap: 24px;
+  width: 100%;
+}
+
+.test-run-btn {
+  padding: 16px 40px;
+  background: var(--accent);
+  color: var(--bg);
+  border: none;
+  border-radius: var(--radius);
+  font-family: var(--font);
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity 0.2s;
+  letter-spacing: 0.3px;
+}
+.test-run-btn:hover { opacity: 0.88; }
+.test-run-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.test-results {
+  display: none;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  max-width: 600px;
+}
+
+.test-step {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px 20px;
+  transition: border-color 0.3s;
+}
+.test-step.done  { border-color: rgba(200,241,53,0.3); }
+.test-step.error { border-color: rgba(255,77,109,0.3); }
+.test-step.loading { border-color: rgba(200,241,53,0.1); }
+
+.test-step-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.test-step-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--muted);
+  font-family: var(--mono);
+}
+
+.test-step-status { font-size: 16px; }
+
+.test-step-body {
+  font-size: 12px;
+  color: var(--text);
+  font-family: var(--mono);
+  white-space: pre-wrap;
+  word-break: break-word;
+  line-height: 1.6;
+  max-height: 180px;
+  overflow-y: auto;
+}
+
 /* STATUS BAR */
 .statusbar {
   position: fixed;
@@ -759,8 +834,8 @@ body::before {
   </div>
   <button class="save-btn" onclick="saveSettings()">Save Settings</button>
   <div style="margin-top:16px; padding-top:16px; border-top:1px solid var(--border); display:flex; justify-content:space-between; align-items:center;">
-    <button onclick="openChangelog()" style="font-size:10px; font-family:var(--mono); color:var(--accent); background:none; border:none; cursor:pointer; padding:0; text-decoration:underline;" id="versionBtn">v1.9.0</button>
-    <span style="font-size:10px; font-family:var(--mono); color:var(--muted);">Updated 2026-04-02 07:00 BST</span>
+    <button onclick="openChangelog()" style="font-size:10px; font-family:var(--mono); color:var(--accent); background:none; border:none; cursor:pointer; padding:0; text-decoration:underline;" id="versionBtn">v2.0.0</button>
+    <span style="font-size:10px; font-family:var(--mono); color:var(--muted);">Updated 2026-04-02 12:00 BST</span>
   </div>
 </div>
 
@@ -785,8 +860,9 @@ body::before {
     </div>
     <div class="header-right">
       <div class="mode-toggle">
-        <button class="mode-btn active" id="textModeBtn" onclick="setMode('text')">✏️ Text</button>
-        <button class="mode-btn" id="voiceModeBtn" onclick="setMode('voice')">🎙 Voice</button>
+        <button class="mode-btn active" id="textModeBtn"  onclick="setMode('text')">✏️ Text</button>
+        <button class="mode-btn"        id="voiceModeBtn" onclick="setMode('voice')">🎙 Voice</button>
+        <button class="mode-btn"        id="testModeBtn"  onclick="setMode('test')">🧪 Test</button>
       </div>
       <button class="icon-btn" onclick="openSettings()" title="Settings">⚙️</button>
     </div>
@@ -794,7 +870,7 @@ body::before {
 
   <!-- GREETING -->
   <div class="greeting">
-    <div class="greeting-time" id="greetingTime">WEDNESDAY · LONDON</div>
+    <div class="greeting-time" id="greetingTime">THURSDAY · LONDON</div>
     <div class="greeting-text">Empty your mind, <span class="accent">Greg.</span></div>
   </div>
 
@@ -802,9 +878,9 @@ body::before {
   <div id="text-mode">
 
     <div class="board-wrap">
-      <button class="board-btn active" data-board="backlog" onclick="setBoard(this)">Backlog</button>
-      <button class="board-btn" data-board="today" onclick="setBoard(this)">Today</button>
-      <button class="board-btn" data-board="this-week" onclick="setBoard(this)">This Week</button>
+      <button class="board-btn active" data-board="backlog"    onclick="setBoard(this)">Backlog</button>
+      <button class="board-btn"        data-board="today"      onclick="setBoard(this)">Today</button>
+      <button class="board-btn"        data-board="this-week"  onclick="setBoard(this)">This Week</button>
     </div>
 
     <div class="input-wrap">
@@ -838,7 +914,7 @@ body::before {
   <div id="voice-mode">
     <div class="voice-container">
       <div class="voice-title">Voice Capture</div>
-      <div class="voice-subtitle">Dump everything on your mind. <strong>Deepgram transcribes, AI categorises</strong> — fully automatic.</div>
+      <div class="voice-subtitle">Dump everything on your mind. <strong>Groq transcribes, AI categorises</strong> — fully automatic.</div>
 
       <button class="record-btn" id="recordBtn" onclick="toggleRecord()">
         <div class="record-inner">
@@ -859,6 +935,40 @@ body::before {
       <div class="voice-summary" id="voiceSummary">
         <div class="summary-title">Sent to Blitzit</div>
         <div id="summaryItems"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TEST MODE -->
+  <div id="test-mode">
+    <div class="test-container">
+      <div class="voice-title">Pipeline Test</div>
+      <div class="voice-subtitle">Runs the full voice pipeline using <strong>test-audio.webm</strong> — no microphone needed.</div>
+
+      <button class="test-run-btn" id="testRunBtn" onclick="runPipelineTest()">Run Pipeline Test</button>
+
+      <div class="test-results" id="testResults">
+        <div class="test-step" id="testStep1">
+          <div class="test-step-header">
+            <div class="test-step-label">Step 1 — Transcript</div>
+            <div class="test-step-status" id="testStatus1">—</div>
+          </div>
+          <div class="test-step-body" id="testBody1"></div>
+        </div>
+        <div class="test-step" id="testStep2">
+          <div class="test-step-header">
+            <div class="test-step-label">Step 2 — Categorised Tasks</div>
+            <div class="test-step-status" id="testStatus2">—</div>
+          </div>
+          <div class="test-step-body" id="testBody2"></div>
+        </div>
+        <div class="test-step" id="testStep3">
+          <div class="test-step-header">
+            <div class="test-step-label">Step 3 — Blitzit Results</div>
+            <div class="test-step-status" id="testStatus3">—</div>
+          </div>
+          <div class="test-step-body" id="testBody3"></div>
+        </div>
       </div>
     </div>
   </div>
@@ -887,13 +997,19 @@ body::before {
 <script>
 // ─── CONFIG ───────────────────────────────────────────────────
 const DEFAULT_WORKER = "https://rapid-frost-ae90.lgt-c0c.workers.dev";
-const DEFAULT_GEMINI = "";  // No longer used
-
-const VERSION = "1.9.0";
-const UPDATED = "2026-04-02 04:00 BST";
+const VERSION = "2.0.0";
+const UPDATED = "2026-04-02 12:00 BST";
 
 const CHANGELOG = [
-  { v: "1.5.0", date: "2026-04-02", notes: ["Show last 5 chars of API keys in settings so you can verify the right key is saved", "Fixed Groq invalid API key issue — key now read correctly from localStorage", "Version number corrected to match actual build"] },
+  { v: "2.0.0", date: "2026-04-02", notes: [
+    "Voice pipeline working end-to-end",
+    "Transcription: Groq Whisper large-v3-turbo (cleaner output, no repeated words)",
+    "Categorisation: Cloudflare Workers AI (free) with Groq llama-3.3-70b fallback",
+    "Added 🧪 Test Mode — runs full pipeline using test-audio.webm, no mic needed",
+    "Fixed duplicate function declarations that silently broke voice mode",
+    "All secrets stay server-side in worker — none in HTML"
+  ]},
+  { v: "1.9.0", date: "2026-04-02", notes: ["Show last 5 chars of API keys in settings so you can verify the right key is saved", "Fixed Groq invalid API key issue — key now read correctly from localStorage", "Version number corrected to match actual build"] },
   { v: "1.4.1", date: "2026-04-02", notes: ["Fixed Groq audio file format — explicit File object with correct mime type", "Removed hardcoded API keys from source code"] },
   { v: "1.4.0", date: "2026-04-02", notes: ["Switched to Groq (Whisper) for voice transcription — faster and reliable", "Gemini now handles text-only categorisation (no audio quota issues)", "Added Groq API key field to settings", "Clickable version number with changelog popup", "Fixed settings timestamp"] },
   { v: "1.3.0", date: "2026-04-02", notes: ["Auto-detect Gemini model via ListModels", "Combined transcription + categorisation into single Gemini call", "Debug output in transcript box on errors"] },
@@ -902,7 +1018,6 @@ const CHANGELOG = [
   { v: "1.0.0", date: "2026-04-01", notes: ["Initial build — text mode with 13 category buttons", "Cloudflare Worker proxy", "Board selector: Backlog / Today / This Week", "Status bar with clocks and last task"] },
 ];
 
-// Category colours for summary dots
 const CAT_COLORS = {
   "Health": "#ff4d6d", "Investments": "#00c896", "Personal Learning": "#ffb830",
   "Home": "#40d9a0", "Admin Personal": "#7c8cf8", "Admin Shared": "#a78bfa",
@@ -926,8 +1041,8 @@ const QUOTES = [
 let currentBoard   = "backlog";
 let currentMode    = "text";
 let isRecording    = false;
-let workerUrl      = localStorage.getItem("workerUrl")  || DEFAULT_WORKER;
-let geminiKey      = localStorage.getItem("geminiKey")  || DEFAULT_GEMINI;
+let mediaRecorder  = null;
+let audioChunks    = [];
 
 // ─── INIT ─────────────────────────────────────────────────────
 document.addEventListener("DOMContentLoaded", () => {
@@ -935,68 +1050,17 @@ document.addEventListener("DOMContentLoaded", () => {
   updateClocks();
   setInterval(updateClocks, 10000);
   document.getElementById("statusQuote").textContent = QUOTES[Math.floor(Math.random() * QUOTES.length)];
-
-  // Auto-detect mobile → default voice mode
   if (window.innerWidth <= 600) setMode("voice");
-
-  // Load saved settings into inputs
   document.getElementById("workerUrlInput").value = localStorage.getItem("workerUrl") || DEFAULT_WORKER;
 });
 
-// ─── GEMINI MODEL AUTO-DETECT ─────────────────────────────────
-let cachedGeminiModel = null;
-
-async function getGeminiModel(key) {
-  if (cachedGeminiModel) return cachedGeminiModel;
-
-  // Try models in order of preference
-  const candidates = [
-    "gemini-2.0-flash",
-    "gemini-2.0-flash-lite",
-    "gemini-1.5-flash",
-    "gemini-1.5-flash-latest",
-    "gemini-1.5-pro",
-  ];
-
-  try {
-    const res  = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${key}`);
-    const data = await res.json();
-    const available = (data.models || [])
-      .filter(m => (m.supportedGenerationMethods || []).includes("generateContent"))
-      .map(m => m.name.replace("models/", ""));
-
-    for (const c of candidates) {
-      if (available.find(a => a === c || a.startsWith(c))) {
-        cachedGeminiModel = c;
-        return c;
-      }
-    }
-    // fallback to first available
-    if (available.length) {
-      cachedGeminiModel = available[0];
-      return available[0];
-    }
-  } catch(e) {
-    console.warn("ListModels failed, using default:", e);
-  }
-
-  cachedGeminiModel = "gemini-2.0-flash";
-  return cachedGeminiModel;
-}
-
-function geminiUrl(model, key) {
-  return `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`;
-}
-
-
+// ─── GREETING & CLOCKS ────────────────────────────────────────
 function updateGreeting() {
   const days = ["SUNDAY","MONDAY","TUESDAY","WEDNESDAY","THURSDAY","FRIDAY","SATURDAY"];
   const now  = new Date();
-  document.getElementById("greetingTime").textContent =
-    days[now.getDay()] + " · LONDON";
+  document.getElementById("greetingTime").textContent = days[now.getDay()] + " · LONDON";
 }
 
-// ─── CLOCKS ───────────────────────────────────────────────────
 function updateClocks() {
   const fmt = tz => new Date().toLocaleTimeString("en-GB", {
     timeZone: tz, hour: "2-digit", minute: "2-digit", hour12: false
@@ -1010,8 +1074,10 @@ function setMode(mode) {
   currentMode = mode;
   document.getElementById("text-mode").style.display  = mode === "text"  ? "block" : "none";
   document.getElementById("voice-mode").style.display = mode === "voice" ? "block" : "none";
+  document.getElementById("test-mode").style.display  = mode === "test"  ? "block" : "none";
   document.getElementById("textModeBtn").classList.toggle("active",  mode === "text");
   document.getElementById("voiceModeBtn").classList.toggle("active", mode === "voice");
+  document.getElementById("testModeBtn").classList.toggle("active",  mode === "test");
 }
 
 // ─── BOARD ────────────────────────────────────────────────────
@@ -1031,7 +1097,7 @@ function handleKey(e) {
   if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); }
 }
 
-// ─── SEND TASK (Text Mode) ────────────────────────────────────
+// ─── TEXT MODE ────────────────────────────────────────────────
 async function sendTask(btn) {
   const input = document.getElementById("taskInput");
   const title = input.value.trim();
@@ -1075,10 +1141,88 @@ async function postToBlitzit(title, category, board = "backlog") {
   return res;
 }
 
-// ─── VOICE RECORDING (MediaRecorder) ────────────────────────
-let mediaRecorder = null;
-let audioChunks   = [];
+// ─── SHARED PIPELINE ──────────────────────────────────────────
+// audioBlob: Blob of audio data
+// onStep(step, status, data): callback — step = "transcribe"|"categorise"|"blitzit"
+//   status = "loading"|"done"|"error"
+//   data   = string (transcribe/categorise) or Array (blitzit)
+async function runPipeline(audioBlob, onStep) {
+  const url = localStorage.getItem("workerUrl") || DEFAULT_WORKER;
 
+  // Step 1: Transcribe
+  onStep("transcribe", "loading", null);
+  let transcript;
+  try {
+    const fd = new FormData();
+    fd.append("file", new File([audioBlob], "audio.webm", { type: audioBlob.type || "audio/webm" }));
+    const res = await fetch(url, { method: "POST", headers: { "X-Action": "transcribe" }, body: fd });
+    if (!res.ok) {
+      const err = await res.text();
+      onStep("transcribe", "error", "HTTP " + res.status + ": " + err.slice(0, 120));
+      throw new Error("transcribe_failed");
+    }
+    transcript = (await res.text()).trim();
+    if (!transcript) {
+      onStep("transcribe", "error", "No speech detected");
+      throw new Error("no_speech");
+    }
+    onStep("transcribe", "done", transcript);
+  } catch(e) {
+    if (e.message !== "transcribe_failed" && e.message !== "no_speech") {
+      onStep("transcribe", "error", e.message);
+    }
+    throw e;
+  }
+
+  // Step 2: Categorise
+  onStep("categorise", "loading", null);
+  let tasks, board;
+  try {
+    const res = await fetch(url, {
+      method:  "POST",
+      headers: { "Content-Type": "application/json", "X-Action": "categorise" },
+      body:    JSON.stringify({ transcript })
+    });
+    if (!res.ok) {
+      const err = await res.text();
+      onStep("categorise", "error", "HTTP " + res.status + ": " + err.slice(0, 120));
+      throw new Error("categorise_failed");
+    }
+    let raw = (await res.text()).trim().replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, "").trim();
+    const m = raw.match(/\{[\s\S]*\}/);
+    if (m) raw = m[0];
+    const parsed = JSON.parse(raw);
+    board = parsed.board || "backlog";
+    tasks = parsed.tasks || [];
+    onStep("categorise", "done", JSON.stringify(parsed, null, 2));
+  } catch(e) {
+    if (e.message !== "categorise_failed") {
+      onStep("categorise", "error", e.message);
+    }
+    throw e;
+  }
+
+  if (!tasks.length) {
+    onStep("blitzit", "error", "No tasks extracted");
+    return [];
+  }
+
+  // Step 3: Send to Blitzit
+  onStep("blitzit", "loading", null);
+  const results = [];
+  await Promise.all(tasks.map(async t => {
+    try {
+      await postToBlitzit(t.title, t.category, board);
+      results.push({ ...t, ok: true });
+    } catch {
+      results.push({ ...t, ok: false });
+    }
+  }));
+  onStep("blitzit", "done", results);
+  return results;
+}
+
+// ─── VOICE MODE ───────────────────────────────────────────────
 function toggleRecord() {
   if (isRecording) stopRecording();
   else startRecording();
@@ -1099,7 +1243,7 @@ async function startRecording() {
     document.getElementById("recordLabel").textContent = "tap to stop";
     document.getElementById("voiceSummary").classList.remove("visible");
     document.getElementById("transcriptBox").classList.remove("visible");
-    document.getElementById("summaryItems").innerHTML = "";
+    document.getElementById("summaryItems").innerHTML  = "";
   } catch(err) {
     showToast("Mic access denied", "error");
   }
@@ -1122,237 +1266,57 @@ async function processVoice() {
 
   const tbox = document.getElementById("transcriptBox");
   tbox.classList.add("visible");
-  document.getElementById("transcriptText").textContent = "Transcribing…";
+  document.getElementById("transcriptText").textContent        = "Transcribing…";
   document.getElementById("processingIndicator").style.display = "flex";
 
   try {
-    // Step 1: Deepgram via worker
-    const workerUrl = localStorage.getItem("workerUrl") || DEFAULT_WORKER;
-    const formData  = new FormData();
-    formData.append("file", new File([blob], "audio.webm", { type: mimeType }));
-
-    const dgRes = await fetch(workerUrl, {
-      method:  "POST",
-      headers: { "X-Action": "transcribe" },
-      body:    formData
-    });
-
-    if (!dgRes.ok) {
-      const err = await dgRes.text();
-      document.getElementById("transcriptText").textContent = "Transcription error: " + err;
-      document.getElementById("processingIndicator").style.display = "none";
-      showToast("Transcription failed", "error");
-      resetRecordBtn();
-      return;
-    }
-
-    const transcript = (await dgRes.text()).trim();
-    document.getElementById("transcriptText").textContent = transcript || "(no speech detected)";
-
-    if (!transcript) {
-      document.getElementById("processingIndicator").style.display = "none";
-      showToast("No speech detected", "info");
-      resetRecordBtn();
-      return;
-    }
-
-    // Step 2: Gemini categorisation (text only)
-    await processTranscript(transcript);
-
-  } catch(err) {
-    console.error(err);
-    document.getElementById("processingIndicator").style.display = "none";
-    showToast("Error: " + err.message, "error");
-    resetRecordBtn();
-  }
-}
-
-function resetRecordBtn() {
-  document.getElementById("recordIcon").textContent  = "🎙";
-  document.getElementById("recordLabel").textContent = "tap to record";
-}
-
-function blobToBase64(blob) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload  = () => resolve(reader.result);
-    reader.onerror = reject;
-    reader.readAsDataURL(blob);
-  });
-}
-
-
-function updateGreeting() {
-  const days = ["SUNDAY","MONDAY","TUESDAY","WEDNESDAY","THURSDAY","FRIDAY","SATURDAY"];
-  const now  = new Date();
-  document.getElementById("greetingTime").textContent =
-    days[now.getDay()] + " · LONDON";
-}
-
-// ─── CLOCKS ───────────────────────────────────────────────────
-function updateClocks() {
-  const fmt = tz => new Date().toLocaleTimeString("en-GB", {
-    timeZone: tz, hour: "2-digit", minute: "2-digit", hour12: false
-  });
-  document.getElementById("clockLondon").textContent = fmt("Europe/London");
-  document.getElementById("clockGeneva").textContent = fmt("Europe/Zurich");
-}
-
-// ─── MODE SWITCH ──────────────────────────────────────────────
-function setMode(mode) {
-  currentMode = mode;
-  document.getElementById("text-mode").style.display  = mode === "text"  ? "block" : "none";
-  document.getElementById("voice-mode").style.display = mode === "voice" ? "block" : "none";
-  document.getElementById("textModeBtn").classList.toggle("active",  mode === "text");
-  document.getElementById("voiceModeBtn").classList.toggle("active", mode === "voice");
-}
-
-// ─── BOARD ────────────────────────────────────────────────────
-function setBoard(btn) {
-  currentBoard = btn.dataset.board;
-  document.querySelectorAll(".board-btn").forEach(b => b.classList.remove("active"));
-  btn.classList.add("active");
-}
-
-// ─── INPUT RESIZE ─────────────────────────────────────────────
-function autoResize(el) {
-  el.style.height = "auto";
-  el.style.height = el.scrollHeight + "px";
-}
-
-function handleKey(e) {
-  if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); }
-}
-
-// ─── SEND TASK (Text Mode) ────────────────────────────────────
-async function sendTask(btn) {
-  const input = document.getElementById("taskInput");
-  const title = input.value.trim();
-  if (!title) { showToast("Type a task first", "info"); return; }
-
-  const cat = btn.dataset.cat;
-  btn.classList.add("sending");
-
-  try {
-    await postToBlitzit(title, cat, currentBoard);
-    btn.classList.remove("sending");
-    btn.classList.add("success-flash");
-    setTimeout(() => btn.classList.remove("success-flash"), 700);
-    document.getElementById("lastTask").textContent = `${title} → ${cat}`;
-    input.value = "";
-    input.style.height = "auto";
-    showToast(`✓ ${cat}`, "success");
-  } catch (err) {
-    btn.classList.remove("sending");
-    showToast("Failed to send — check worker URL", "error");
-    console.error(err);
-  }
-}
-
-// ─── POST TO BLITZIT VIA WORKER ───────────────────────────────
-async function postToBlitzit(title, category, board = "backlog") {
-  const url = localStorage.getItem("workerUrl") || DEFAULT_WORKER;
-  const res  = await fetch(url, {
-    method:  "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      action:   "create",
-      title:    title,
-      board:    board,
-      id:       "flink-" + Date.now() + "-" + Math.random().toString(36).slice(2,7),
-      source:   "Flink",
-      category: category
-    })
-  });
-  if (!res.ok) throw new Error("Worker responded " + res.status);
-  return res;
-}
-
-// ─── VOICE RECORDING (Web Speech API) ────────────────────────
-
-function toggleRecord() {
-  if (isRecording) {
-    stopRecording();
-  } else {
-    startRecording();
-  }
-}
-
-
-
-async function processTranscript(transcript) {
-  document.getElementById("transcriptText").textContent = transcript;
-  document.getElementById("processingIndicator").style.display = "flex";
-
-  const workerUrl = localStorage.getItem("workerUrl") || DEFAULT_WORKER;
-
-  try {
-    // Cloudflare AI categorisation via worker
-    const res = await fetch(workerUrl, {
-      method:  "POST",
-      headers: { "Content-Type": "application/json", "X-Action": "categorise" },
-      body:    JSON.stringify({ transcript })
-    });
-
-    if (!res.ok) {
-      const err = await res.text();
-      document.getElementById("processingIndicator").style.display = "none";
-      showToast("Categorisation error: " + err.slice(0,60), "error");
-      return;
-    }
-
-    let rawText = await res.text();
-    rawText = rawText.trim().replace(/^```(?:json)?\s*/i,"").replace(/\s*```$/,"").trim();
-    const match = rawText.match(/\{[\s\S]*\}/);
-    if (match) rawText = match[0];
-
-    let parsed;
-    try { parsed = JSON.parse(rawText); }
-    catch(e) {
-      document.getElementById("processingIndicator").style.display = "none";
-      showToast("Could not parse response", "error");
-      return;
-    }
-
-    const board = parsed.board || "backlog";
-    const tasks = parsed.tasks || [];
-    document.getElementById("processingIndicator").style.display = "none";
-
-    if (!tasks.length) { showToast("No tasks detected", "info"); return; }
-
-    // Fire all to Blitzit
-    const results  = [];
-    await Promise.all(tasks.map(async t => {
-      try {
-        await postToBlitzit(t.title, t.category, board);
-        results.push({ ...t, ok: true });
-      } catch {
-        results.push({ ...t, ok: false });
+    await runPipeline(blob, (step, status, data) => {
+      if (step === "transcribe") {
+        if (status === "done") {
+          document.getElementById("transcriptText").textContent        = data;
+          document.getElementById("processingIndicator").style.display = "flex";
+        } else if (status === "error") {
+          document.getElementById("transcriptText").textContent        = "Error: " + data;
+          document.getElementById("processingIndicator").style.display = "none";
+          showToast("Transcription failed", "error");
+        }
       }
-    }));
-
-    // Show summary
-    const summaryEl = document.getElementById("voiceSummary");
-    const itemsEl   = document.getElementById("summaryItems");
-    itemsEl.innerHTML = "";
-    results.forEach(r => {
-      const div   = document.createElement("div");
-      div.className = "summary-item";
-      const color = CAT_COLORS[r.category] || "#94a3b8";
-      div.innerHTML = `<div class="summary-dot" style="background:${color}"></div><div class="summary-task">${r.title}</div><div class="summary-cat">${r.category}</div><div class="summary-status">${r.ok ? "✓" : "✗"}</div>`;
-      itemsEl.appendChild(div);
+      if (step === "categorise" && status === "error") {
+        document.getElementById("processingIndicator").style.display = "none";
+        showToast("Categorisation failed", "error");
+      }
+      if (step === "blitzit") {
+        document.getElementById("processingIndicator").style.display = "none";
+        if (status === "done" && Array.isArray(data)) {
+          showVoiceSummary(data);
+        } else if (status === "error") {
+          showToast(data, "error");
+        }
+      }
     });
-    summaryEl.classList.add("visible");
-
-    const ok = results.filter(r => r.ok).length;
-    document.getElementById("lastTask").textContent = `${ok}/${results.length} tasks sent via voice`;
-    showToast(`✓ ${ok} task${ok !== 1 ? "s" : ""} sent`, "success");
-
   } catch(err) {
-    console.error(err);
+    console.error("Voice pipeline error:", err);
     document.getElementById("processingIndicator").style.display = "none";
-    showToast("Error: " + err.message, "error");
   }
+
+  resetRecordBtn();
+}
+
+function showVoiceSummary(results) {
+  const summaryEl = document.getElementById("voiceSummary");
+  const itemsEl   = document.getElementById("summaryItems");
+  itemsEl.innerHTML = "";
+  results.forEach(r => {
+    const div   = document.createElement("div");
+    div.className = "summary-item";
+    const color = CAT_COLORS[r.category] || "#94a3b8";
+    div.innerHTML = `<div class="summary-dot" style="background:${color}"></div><div class="summary-task">${r.title}</div><div class="summary-cat">${r.category}</div><div class="summary-status">${r.ok ? "✓" : "✗"}</div>`;
+    itemsEl.appendChild(div);
+  });
+  summaryEl.classList.add("visible");
+  const ok = results.filter(r => r.ok).length;
+  document.getElementById("lastTask").textContent = `${ok}/${results.length} tasks sent via voice`;
+  showToast(`✓ ${ok} task${ok !== 1 ? "s" : ""} sent`, "success");
 }
 
 function resetRecordBtn() {
@@ -1360,22 +1324,77 @@ function resetRecordBtn() {
   document.getElementById("recordLabel").textContent = "tap to record";
 }
 
+// ─── TEST MODE ────────────────────────────────────────────────
+function testStep(stepId, statusId, bodyId, status, data) {
+  const el = document.getElementById(stepId);
+  el.className = "test-step " + status;
+  document.getElementById(statusId).textContent = status === "loading" ? "⏳" : status === "done" ? "✓" : status === "error" ? "✗" : "—";
+  document.getElementById(bodyId).textContent   = data || "";
+}
+
+async function runPipelineTest() {
+  const btn = document.getElementById("testRunBtn");
+  btn.disabled    = true;
+  btn.textContent = "Running…";
+
+  // Reset
+  document.getElementById("testResults").style.display = "flex";
+  ["testStep1","testStep2","testStep3"].forEach((id, i) => {
+    document.getElementById(id).className = "test-step";
+    document.getElementById("testStatus" + (i+1)).textContent = "—";
+    document.getElementById("testBody"   + (i+1)).textContent = "";
+  });
+
+  try {
+    const response = await fetch("test-audio.webm");
+    if (!response.ok) throw new Error("Could not fetch test-audio.webm (HTTP " + response.status + ")");
+    const audioBlob = await response.blob();
+
+    await runPipeline(audioBlob, (step, status, data) => {
+      if (step === "transcribe") {
+        if (status === "loading") {
+          testStep("testStep1","testStatus1","testBody1", "loading", "Sending audio to worker…");
+        } else if (status === "done") {
+          testStep("testStep1","testStatus1","testBody1", "done", data);
+        } else {
+          testStep("testStep1","testStatus1","testBody1", "error", data);
+        }
+      }
+      if (step === "categorise") {
+        if (status === "loading") {
+          testStep("testStep2","testStatus2","testBody2", "loading", "Categorising with AI…");
+        } else if (status === "done") {
+          testStep("testStep2","testStatus2","testBody2", "done", data);
+        } else {
+          testStep("testStep2","testStatus2","testBody2", "error", data);
+        }
+      }
+      if (step === "blitzit") {
+        if (status === "loading") {
+          testStep("testStep3","testStatus3","testBody3", "loading", "Sending to Blitzit…");
+        } else if (status === "done" && Array.isArray(data)) {
+          const ok  = data.filter(r => r.ok).length;
+          const txt = data.map(r => (r.ok ? "✓" : "✗") + " " + r.title + " → " + r.category).join("\n");
+          testStep("testStep3","testStatus3","testBody3", ok === data.length ? "done" : "error", txt);
+          document.getElementById("lastTask").textContent = ok + "/" + data.length + " tasks sent (test)";
+          showToast("Test done: " + ok + "/" + data.length + " sent", ok === data.length ? "success" : "info");
+        } else if (status === "error") {
+          testStep("testStep3","testStatus3","testBody3", "error", data);
+        }
+      }
+    });
+  } catch(err) {
+    console.error("Test pipeline error:", err);
+    showToast("Test failed: " + err.message, "error");
+  }
+
+  btn.disabled    = false;
+  btn.textContent = "Run Pipeline Test";
+}
 
 // ─── SETTINGS ─────────────────────────────────────────────────
-function setKeyField(inputId, hintId, value) {
-  const input = document.getElementById(inputId);
-  const hint  = document.getElementById(hintId);
-  if (value) {
-    input.value = value;
-    hint.textContent = "···" + value.slice(-5);
-  } else {
-    input.value = "";
-    hint.textContent = "";
-  }
-}
-
 function openSettings() {
-  // Refresh hints when opening
+  document.getElementById("workerUrlInput").value = localStorage.getItem("workerUrl") || DEFAULT_WORKER;
   document.getElementById("settingsOverlay").classList.add("open");
   document.getElementById("settingsPanel").classList.add("open");
 }
@@ -1386,9 +1405,8 @@ function closeSettings() {
 }
 
 function saveSettings() {
-  const w  = document.getElementById("workerUrlInput").value.trim();
-  const g = "";
-  if (w)  { localStorage.setItem("workerUrl", w); }
+  const w = document.getElementById("workerUrlInput").value.trim();
+  if (w) { localStorage.setItem("workerUrl", w); }
   closeSettings();
   showToast("Settings saved", "success");
 }
@@ -1410,7 +1428,6 @@ function openChangelog() {
 
   document.getElementById("changelogOverlay").style.display = "block";
   document.getElementById("changelogPanel").style.display   = "block";
-  // Close settings first
   closeSettings();
 }
 
