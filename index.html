@@ -641,7 +641,7 @@ html.dark .cat-btn.braindump { background: var(--bg3); }
 // ─── CONFIG ───────────────────────────────────────────────────
 const DEFAULT_WORKER = "https://rapid-frost-ae90.lgt-c0c.workers.dev";
 const VERSION      = "2.5.0";
-const DEPLOY_TIME  = "2026-04-03 00:55:27 BST";
+const DEPLOY_TIME  = "2026-04-03 00:56:29 BST";
 
 const CHANGELOG = [
   { v: "2.5.0", date: "2026-04-03", time: DEPLOY_TIME, notes: [
@@ -830,7 +830,7 @@ async function fetchWeather() {
     const sunset = sun.daily.sunset[0].slice(11, 16); // "2026-04-03T20:05" → "20:05"
 
     document.getElementById("weatherDisplay").textContent =
-      `${emoji} ${temp}°C · London · 🌇 ${sunset}`;
+      `${emoji} ${temp}°C · London · 🌅 ${sunset}`;
   } catch(e) {}
 }
 
