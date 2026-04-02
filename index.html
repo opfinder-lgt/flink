@@ -142,8 +142,8 @@ body, .statusbar, .mode-toggle, .task-input, .board-btn,
   font-family: var(--mono);
 }
 .greeting-text {
-  font-size: clamp(20px, 2.4vw, 28px);
-  font-weight: 700; color: var(--text); letter-spacing: -0.4px;
+  font-size: clamp(28px, 3.2vw, 42px);
+  font-weight: 700; color: var(--text); letter-spacing: -0.6px;
 }
 .greeting-text .accent { color: var(--accent); }
 
@@ -174,7 +174,7 @@ body, .statusbar, .mode-toggle, .task-input, .board-btn,
   border: 2px solid var(--border2);
   border-radius: var(--r);
   color: var(--text);
-  font-family: var(--font); font-size: 20px; font-weight: 400;
+  font-family: var(--font); font-size: 33px; font-weight: 400;
   outline: none;
   transition: border-color 0.15s, box-shadow 0.15s;
   line-height: 1;
@@ -487,9 +487,9 @@ html.dark .cat-btn.braindump { background: var(--bg3); }
 /* ── RESPONSIVE — mobile ── */
 @media (max-width: 600px) {
   .app { padding: 16px 14px 84px; }
-  .greeting-text { font-size: 22px; }
+  .greeting-text { font-size: 28px; }
   .greeting-date { font-size: 11px; }
-  .task-input { font-size: 18px; padding: 15px 18px; }
+  .task-input { font-size: 26px; padding: 15px 18px; }
   .cat-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
   .cat-btn { min-height: 64px; font-size: 14px; padding: 0 10px 0 50px; }
   .cat-emoji { font-size: 24px; left: 13px; }
@@ -542,7 +542,6 @@ html.dark .cat-btn.braindump { background: var(--bg3); }
 
   <div class="header">
     <div class="brand">
-      <div class="brand-logo">F</div>
       <div class="brand-name">flink<span>.</span></div>
     </div>
     <div class="header-right">
