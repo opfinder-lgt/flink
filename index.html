@@ -757,17 +757,10 @@ body::before {
     <label>Worker URL</label>
     <input type="text" id="workerUrlInput" placeholder="https://your-worker.workers.dev" />
   </div>
-  <div class="settings-field">
-    <label>Gemini API Key (categorisation)</label>
-    <div style="position:relative;">
-      <input type="password" id="geminiKeyInput" placeholder="AIza..." style="width:100%;padding-right:60px;" oninput="document.getElementById('geminiKeyHint').textContent = this.value.length > 5 ? '···' + this.value.slice(-5) : ''" />
-      <span id="geminiKeyHint" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);font-family:var(--mono);font-size:11px;color:var(--accent);pointer-events:none;"></span>
-    </div>
-  </div>
   <button class="save-btn" onclick="saveSettings()">Save Settings</button>
   <div style="margin-top:16px; padding-top:16px; border-top:1px solid var(--border); display:flex; justify-content:space-between; align-items:center;">
-    <button onclick="openChangelog()" style="font-size:10px; font-family:var(--mono); color:var(--accent); background:none; border:none; cursor:pointer; padding:0; text-decoration:underline;" id="versionBtn">v1.8.0</button>
-    <span style="font-size:10px; font-family:var(--mono); color:var(--muted);">Updated 2026-04-02 06:00 BST</span>
+    <button onclick="openChangelog()" style="font-size:10px; font-family:var(--mono); color:var(--accent); background:none; border:none; cursor:pointer; padding:0; text-decoration:underline;" id="versionBtn">v1.9.0</button>
+    <span style="font-size:10px; font-family:var(--mono); color:var(--muted);">Updated 2026-04-02 07:00 BST</span>
   </div>
 </div>
 
@@ -845,7 +838,7 @@ body::before {
   <div id="voice-mode">
     <div class="voice-container">
       <div class="voice-title">Voice Capture</div>
-      <div class="voice-subtitle">Dump everything on your mind. <strong>Deepgram transcribes, Gemini categorises</strong> — all automatic.</div>
+      <div class="voice-subtitle">Dump everything on your mind. <strong>Deepgram transcribes, AI categorises</strong> — fully automatic.</div>
 
       <button class="record-btn" id="recordBtn" onclick="toggleRecord()">
         <div class="record-inner">
@@ -894,9 +887,9 @@ body::before {
 <script>
 // ─── CONFIG ───────────────────────────────────────────────────
 const DEFAULT_WORKER = "https://rapid-frost-ae90.lgt-c0c.workers.dev";
-const DEFAULT_GEMINI = "";  // Set in Settings panel
+const DEFAULT_GEMINI = "";  // No longer used
 
-const VERSION = "1.8.0";
+const VERSION = "1.9.0";
 const UPDATED = "2026-04-02 04:00 BST";
 
 const CHANGELOG = [
@@ -948,7 +941,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Load saved settings into inputs
   document.getElementById("workerUrlInput").value = localStorage.getItem("workerUrl") || DEFAULT_WORKER;
-  setKeyField("geminiKeyInput", "geminiKeyHint", localStorage.getItem("geminiKey") || DEFAULT_GEMINI);
 });
 
 // ─── GEMINI MODEL AUTO-DETECT ─────────────────────────────────
@@ -1289,53 +1281,33 @@ function toggleRecord() {
 
 
 async function processTranscript(transcript) {
-  const geminiKey  = localStorage.getItem("geminiKey") || DEFAULT_GEMINI;
-  const categories = Object.keys(CAT_COLORS).join(", ");
-
   document.getElementById("transcriptText").textContent = transcript;
   document.getElementById("processingIndicator").style.display = "flex";
 
+  const workerUrl = localStorage.getItem("workerUrl") || DEFAULT_WORKER;
+
   try {
-    const model = await getGeminiModel(geminiKey);
-    const res   = await fetch(geminiUrl(model, geminiKey), {
+    // Cloudflare AI categorisation via worker
+    const res = await fetch(workerUrl, {
       method:  "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: `You are Greg's personal task assistant in London.
-
-Extract every individual task from this text and categorise each one.
-
-Available categories: ${categories}
-
-Rules:
-- Split compound sentences into individual tasks
-- If unsure of category use "Braindump"
-- If text mentions "today" use board "today", otherwise "backlog"
-- Return ONLY valid JSON, no markdown, no explanation
-
-Format: {"board":"backlog","tasks":[{"title":"task title","category":"Category Name"}]}
-
-Text: ${transcript}` }] }],
-        generationConfig: { temperature: 0.1 }
-      })
+      headers: { "Content-Type": "application/json", "X-Action": "categorise" },
+      body:    JSON.stringify({ transcript })
     });
 
-    const data    = await res.json();
-    const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text || "";
-
-    if (!rawText) {
-      const errMsg = data.error?.message || JSON.stringify(data);
+    if (!res.ok) {
+      const err = await res.text();
       document.getElementById("processingIndicator").style.display = "none";
-      showToast("Gemini error: " + errMsg.slice(0,60), "error");
+      showToast("Categorisation error: " + err.slice(0,60), "error");
       return;
     }
 
-    let jsonStr = rawText.trim().replace(/^```(?:json)?\s*/i,"").replace(/\s*```$/,"").trim();
-    const match = jsonStr.match(/\{[\s\S]*\}/);
-    if (match) jsonStr = match[0];
+    let rawText = await res.text();
+    rawText = rawText.trim().replace(/^```(?:json)?\s*/i,"").replace(/\s*```$/,"").trim();
+    const match = rawText.match(/\{[\s\S]*\}/);
+    if (match) rawText = match[0];
 
     let parsed;
-    try { parsed = JSON.parse(jsonStr); }
+    try { parsed = JSON.parse(rawText); }
     catch(e) {
       document.getElementById("processingIndicator").style.display = "none";
       showToast("Could not parse response", "error");
@@ -1404,7 +1376,6 @@ function setKeyField(inputId, hintId, value) {
 
 function openSettings() {
   // Refresh hints when opening
-  setKeyField("geminiKeyInput", "geminiKeyHint", localStorage.getItem("geminiKey") || DEFAULT_GEMINI);
   document.getElementById("settingsOverlay").classList.add("open");
   document.getElementById("settingsPanel").classList.add("open");
 }
@@ -1416,9 +1387,8 @@ function closeSettings() {
 
 function saveSettings() {
   const w  = document.getElementById("workerUrlInput").value.trim();
-  const g  = document.getElementById("geminiKeyInput").value.trim();
+  const g = "";
   if (w)  { localStorage.setItem("workerUrl", w); }
-  if (g)  { localStorage.setItem("geminiKey", g);  setKeyField("geminiKeyInput", "geminiKeyHint", g); cachedGeminiModel = null; }
   closeSettings();
   showToast("Settings saved", "success");
 }
