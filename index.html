@@ -525,7 +525,7 @@ html.dark .cat-btn.braindump { background: var(--bg3); }
   <button class="save-btn" onclick="saveSettings()">Save</button>
   <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border2);display:flex;justify-content:space-between;align-items:center;">
     <button onclick="openChangelog()" style="font-size:10px;font-family:var(--mono);color:var(--accent);background:none;border:none;cursor:pointer;padding:0;text-decoration:underline;">v2.5.0</button>
-    <span style="font-size:10px;font-family:var(--mono);color:var(--text3);">2026-04-03 BST</span>
+    <span id="deployStamp" style="font-size:10px;font-family:var(--mono);color:var(--text3);"></span>
   </div>
 </div>
 
@@ -550,9 +550,8 @@ html.dark .cat-btn.braindump { background: var(--bg3); }
       <div class="mode-toggle">
         <button class="mode-btn active" id="textModeBtn"  onclick="setMode('text')">✏️ Text</button>
         <button class="mode-btn"        id="voiceModeBtn" onclick="setMode('voice')">🎙 Voice</button>
-        <div style="width:1px;background:var(--border2);margin:3px 3px;align-self:stretch;"></div>
-        <button class="mode-btn" id="themeBtn" onclick="toggleTheme()">Dark</button>
       </div>
+      <button class="icon-btn" id="themeBtn" onclick="toggleTheme()" title="Toggle theme" style="font-size:11px;font-weight:600;width:auto;padding:0 10px;font-family:var(--font);">Dark</button>
       <button class="icon-btn" onclick="openSettings()" title="Settings">⚙️</button>
     </div>
   </div>
@@ -641,10 +640,11 @@ html.dark .cat-btn.braindump { background: var(--bg3); }
 <script>
 // ─── CONFIG ───────────────────────────────────────────────────
 const DEFAULT_WORKER = "https://rapid-frost-ae90.lgt-c0c.workers.dev";
-const VERSION = "2.5.0";
+const VERSION      = "2.5.0";
+const DEPLOY_TIME  = "2026-04-03 00:48:45 BST";
 
 const CHANGELOG = [
-  { v: "2.5.0", date: "2026-04-03", time: "built " + new Date().toLocaleTimeString("en-GB", {hour:"2-digit",minute:"2-digit",second:"2-digit",hour12:false}) + " BST", notes: [
+  { v: "2.5.0", date: "2026-04-03", time: DEPLOY_TIME, notes: [
     "Input: restored visible background + border so it reads as a field",
     "Buttons: height reduced ~20% (64px → 52px), Braindump same height as others",
     "Residents Association: full name shown with slightly smaller font",
@@ -765,6 +765,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const saved = localStorage.getItem("lastTask");
   if (saved) document.getElementById("lastTask").textContent = saved;
 
+  document.getElementById("deployStamp").textContent = DEPLOY_TIME;
+
   if (window.innerWidth <= 600) setMode("voice");
 
   document.getElementById("workerUrlInput").value = localStorage.getItem("workerUrl") || DEFAULT_WORKER;
@@ -812,52 +814,37 @@ function updateClocks() {
   document.getElementById("clockEurope").textContent = fmt("Europe/Zurich");
 }
 
-// ─── WEATHER ──────────────────────────────────────────────────
+// ─── WEATHER — Open-Meteo (free, accurate, no key, CORS-friendly) ──
 async function fetchWeather() {
   try {
-    const res = await fetch("https://wttr.in/London?format=j1");
-    if (!res.ok) return;
-    const d  = await res.json();
-    const cc = d.current_condition[0];
-    const tempC = cc.temp_C;
-    const desc  = cc.weatherDesc[0].value;
-    const emoji = weatherEmoji(desc);
+    const [wxRes, sunRes] = await Promise.all([
+      fetch("https://api.open-meteo.com/v1/forecast?latitude=51.5074&longitude=-0.1278&current=temperature_2m,weather_code&timezone=Europe/London"),
+      fetch("https://api.open-meteo.com/v1/forecast?latitude=51.5074&longitude=-0.1278&daily=sunset&timezone=Europe/London&forecast_days=1")
+    ]);
+    if (!wxRes.ok || !sunRes.ok) return;
+    const wx  = await wxRes.json();
+    const sun = await sunRes.json();
 
-    // Sunset from today's astronomy data
-    let sunsetStr = "";
-    try {
-      const rawSunset = d.weather[0].astronomy[0].sunset; // e.g. "08:22 PM"
-      sunsetStr = " · 🌇 " + to24h(rawSunset);
-    } catch(e) {}
+    const temp   = Math.round(wx.current.temperature_2m);
+    const emoji  = weatherEmoji(wx.current.weather_code);
+    const sunset = sun.daily.sunset[0].slice(11, 16); // "2026-04-03T20:05" → "20:05"
 
     document.getElementById("weatherDisplay").textContent =
-      emoji + " " + tempC + "°C · London" + sunsetStr;
+      `${emoji} ${temp}°C · London · 🌇 ${sunset}`;
   } catch(e) {}
 }
 
-function to24h(str) {
-  // Convert "08:22 PM" → "20:22"
-  const m = str.match(/(\d+):(\d+)\s*(AM|PM)/i);
-  if (!m) return str;
-  let h = parseInt(m[1], 10);
-  const min = m[2];
-  const period = m[3].toUpperCase();
-  if (period === "PM" && h !== 12) h += 12;
-  if (period === "AM" && h === 12) h = 0;
-  return h.toString().padStart(2,"0") + ":" + min;
-}
-
-function weatherEmoji(desc) {
-  const d = desc.toLowerCase();
-  if (d.includes("sunny") || d.includes("clear"))                          return "☀️";
-  if (d.includes("partly"))                                                 return "⛅";
-  if (d.includes("overcast") || d.includes("cloudy"))                      return "☁️";
-  if (d.includes("thunder") || d.includes("storm"))                        return "⛈️";
-  if (d.includes("snow") || d.includes("blizzard"))                        return "❄️";
-  if (d.includes("sleet") || d.includes("ice"))                            return "🌨️";
-  if (d.includes("rain") || d.includes("drizzle") || d.includes("shower")) return "🌧️";
-  if (d.includes("fog") || d.includes("mist") || d.includes("haze"))      return "🌫️";
-  if (d.includes("wind"))                                                   return "💨";
+function weatherEmoji(code) {
+  if (code === 0)               return "☀️";
+  if (code <= 2)                return "⛅";
+  if (code === 3)               return "☁️";
+  if (code <= 48)               return "🌫️";
+  if (code <= 55)               return "🌦️";
+  if (code <= 65)               return "🌧️";
+  if (code <= 77)               return "❄️";
+  if (code <= 82)               return "🌧️";
+  if (code <= 86)               return "❄️";
+  if (code >= 95)               return "⛈️";
   return "🌤️";
 }
 
