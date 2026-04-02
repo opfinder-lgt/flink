@@ -86,7 +86,7 @@ body, .statusbar, .mode-toggle, .task-input, .board-btn,
   max-width: 1200px;
   width: 100%;
   margin: 0 auto;
-  padding: 28px 32px 88px;
+  padding: 24px 32px 96px;
 }
 
 /* ── HEADER ── */
@@ -94,7 +94,7 @@ body, .statusbar, .mode-toggle, .task-input, .board-btn,
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 28px;
+  margin-bottom: 22px;
 }
 .brand { display: flex; align-items: center; gap: 9px; }
 .brand-logo {
@@ -135,10 +135,10 @@ body, .statusbar, .mode-toggle, .task-input, .board-btn,
 .icon-btn:hover { background: var(--bg3); color: var(--text); }
 
 /* ── GREETING ── */
-.greeting { margin-bottom: 24px; }
+.greeting { margin-bottom: 20px; }
 .greeting-date {
   font-size: 10px; font-weight: 600; letter-spacing: 1.5px;
-  text-transform: uppercase; color: var(--text3); margin-bottom: 4px;
+  text-transform: uppercase; color: var(--text3); margin-bottom: 5px;
   font-family: var(--mono);
 }
 .greeting-text {
@@ -147,24 +147,9 @@ body, .statusbar, .mode-toggle, .task-input, .board-btn,
 }
 .greeting-text .accent { color: var(--accent); }
 
-/* ── TEXT MODE — two-column desktop layout ── */
+/* ── TEXT MODE — vertical stack ── */
 #text-mode  { }
 #voice-mode { display: none; }
-
-.text-layout {
-  display: flex;
-  gap: 32px;
-  align-items: flex-start;
-}
-
-.text-left {
-  width: 300px;
-  flex-shrink: 0;
-  position: sticky;
-  top: 24px;
-}
-
-.text-right { flex: 1; min-width: 0; }
 
 /* ── BOARD ── */
 .board-wrap { display: flex; gap: 6px; margin-bottom: 14px; }
@@ -180,19 +165,20 @@ body, .statusbar, .mode-toggle, .task-input, .board-btn,
 .board-btn:hover { color: var(--text); border-color: var(--accent); }
 .board-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
 
-/* ── INPUT ── */
-.input-wrap { margin-bottom: 0; }
+/* ── SINGLE-LINE INPUT ── */
+.input-wrap { margin-bottom: 20px; }
 .task-input {
   width: 100%;
-  padding: 14px 16px;
+  padding: 18px 22px;
   background: var(--bg);
-  border: 1.5px solid var(--border2);
+  border: 2px solid var(--border2);
   border-radius: var(--r);
   color: var(--text);
-  font-family: var(--font); font-size: 15px; font-weight: 400;
+  font-family: var(--font); font-size: 20px; font-weight: 400;
   outline: none;
   transition: border-color 0.15s, box-shadow 0.15s;
-  resize: none; min-height: 120px; line-height: 1.6;
+  line-height: 1;
+  -webkit-appearance: none;
 }
 .task-input::placeholder { color: var(--text3); }
 .task-input:focus {
@@ -210,34 +196,34 @@ body, .statusbar, .mode-toggle, .task-input, .board-btn,
 /* ── CATEGORY GRID ── */
 .cat-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 7px;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
 }
 
-/* ── CATEGORY BUTTON — icon pinned left, text centred ── */
+/* ── CATEGORY BUTTON — bigger icon + text ── */
 .cat-btn {
   position: relative;
   border: 1px solid var(--border2);
   border-left-width: 3px;
   border-radius: var(--r);
-  padding: 0 16px 0 44px;   /* left padding reserves icon space */
-  min-height: 54px;
+  padding: 0 16px 0 56px;   /* left space for icon */
+  min-height: 64px;
   cursor: pointer;
   display: flex;
   align-items: center;
-  justify-content: center;  /* text centred in remaining space */
-  font-family: var(--font); font-size: 13px; font-weight: 600;
+  justify-content: center;
+  font-family: var(--font); font-size: 15px; font-weight: 600;
   color: var(--text);
   background: var(--bg);
   text-align: center;
-  letter-spacing: 0.1px;
+  letter-spacing: 0.05px;
   transition: transform 0.12s, box-shadow 0.12s, opacity 0.12s, background 0.2s;
   overflow: hidden;
 }
 .cat-emoji {
   position: absolute;
-  left: 13px;
-  font-size: 20px;
+  left: 14px;
+  font-size: 26px;
   line-height: 1;
   flex-shrink: 0;
 }
@@ -277,15 +263,15 @@ html.dark .cat-btn[data-cat="Friends & Family"]      { background: rgba(212,63,1
 /* Braindump — full-width spacebar */
 .cat-btn.braindump {
   grid-column: 1 / -1;
-  min-height: 58px;
-  padding: 0 16px 0 44px;
+  min-height: 64px;
+  padding: 0 16px 0 56px;
   border-left-color: var(--braindump);
   background: var(--bg3);
-  font-size: 14px; font-weight: 700;
+  font-size: 16px; font-weight: 700;
   justify-content: center;
 }
 html.dark .cat-btn.braindump { background: var(--bg3); }
-.cat-btn.braindump .cat-emoji { font-size: 20px; }
+.cat-btn.braindump .cat-emoji { font-size: 26px; }
 
 /* ── VOICE MODE ── */
 .voice-container {
@@ -376,28 +362,34 @@ html.dark .cat-btn.braindump { background: var(--bg3); }
 .statusbar {
   position: fixed; bottom: 0; left: 0; right: 0;
   background: var(--bg); border-top: 1px solid var(--border2);
-  padding: 7px 28px;
+  padding: 8px 28px;
   display: flex; align-items: center; justify-content: space-between;
   z-index: 500; transition: background 0.25s, border-color 0.2s;
 }
 .status-left { min-width: 160px; }
 .status-label {
-  font-size: 8px; font-weight: 700; letter-spacing: 1.5px;
+  font-size: 9px; font-weight: 700; letter-spacing: 1.5px;
   text-transform: uppercase; color: var(--text3);
-  font-family: var(--mono); margin-bottom: 1px;
+  font-family: var(--mono); margin-bottom: 2px;
 }
 .status-value {
-  font-size: 11px; font-weight: 600; color: var(--text2);
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 220px;
+  font-size: 13px; font-weight: 600; color: var(--text2);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 260px;
 }
 .status-weather {
   flex: 1; text-align: center;
-  font-size: 11px; color: var(--text2); font-family: var(--mono);
+  font-size: 13px; color: var(--text2); font-family: var(--mono);
 }
-.status-clocks { display: flex; gap: 20px; align-items: center; }
+.status-clocks { display: flex; gap: 24px; align-items: center; }
 .clock-item { text-align: right; }
-.clock-city { font-size: 8px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text3); font-family: var(--mono); }
-.clock-time { font-size: 13px; font-weight: 700; color: var(--text); font-family: var(--mono); letter-spacing: 0.5px; }
+.clock-city {
+  font-size: 10px; font-weight: 700; letter-spacing: 1px;
+  text-transform: uppercase; color: var(--text3); font-family: var(--mono);
+}
+.clock-time {
+  font-size: 15px; font-weight: 700; color: var(--text);
+  font-family: var(--mono); letter-spacing: 0.5px;
+}
 
 /* ── SETTINGS ── */
 .settings-overlay {
@@ -449,7 +441,7 @@ html.dark .cat-btn.braindump { background: var(--bg3); }
 
 /* ── TOAST — bottom right ── */
 .toast-container {
-  position: fixed; bottom: 68px; right: 20px;
+  position: fixed; bottom: 74px; right: 20px;
   z-index: 1000; display: flex; flex-direction: column-reverse;
   gap: 7px; pointer-events: none;
 }
@@ -488,30 +480,28 @@ html.dark .cat-btn.braindump { background: var(--bg3); }
 
 /* ── RESPONSIVE — tablet ── */
 @media (max-width: 860px) {
-  .app { padding: 22px 24px 84px; }
-  .text-layout { flex-direction: column; gap: 20px; }
-  .text-left { width: 100%; position: static; }
-  .text-right { width: 100%; }
+  .app { padding: 20px 22px 88px; }
   .cat-grid { grid-template-columns: repeat(3, 1fr); }
-  .task-input { min-height: 80px; }
 }
 
 /* ── RESPONSIVE — mobile ── */
 @media (max-width: 600px) {
-  .app { padding: 18px 16px 80px; }
+  .app { padding: 16px 14px 84px; }
   .greeting-text { font-size: 22px; }
   .greeting-date { font-size: 11px; }
-  .task-input { font-size: 16px; min-height: 80px; }
+  .task-input { font-size: 18px; padding: 15px 18px; }
   .cat-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
-  .cat-btn { min-height: 58px; font-size: 14px; padding: 0 12px 0 46px; }
-  .cat-emoji { font-size: 22px; left: 12px; }
-  .cat-btn.braindump { min-height: 64px; font-size: 15px; }
+  .cat-btn { min-height: 64px; font-size: 14px; padding: 0 10px 0 50px; }
+  .cat-emoji { font-size: 24px; left: 13px; }
+  .cat-btn.braindump { min-height: 68px; font-size: 15px; padding: 0 10px 0 50px; }
   .board-btn { font-size: 13px; padding: 8px 14px; }
   .status-weather { display: none; }
   .record-btn { width: 116px; height: 116px; }
   .record-icon { font-size: 34px; }
   .mode-btn { font-size: 13px; padding: 7px 14px; }
   .brand-name { font-size: 19px; }
+  .clock-time { font-size: 13px; }
+  .status-value { font-size: 12px; max-width: 160px; }
 }
 </style>
 </head>
@@ -532,7 +522,7 @@ html.dark .cat-btn.braindump { background: var(--bg3); }
   </div>
   <button class="save-btn" onclick="saveSettings()">Save</button>
   <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border2);display:flex;justify-content:space-between;align-items:center;">
-    <button onclick="openChangelog()" style="font-size:10px;font-family:var(--mono);color:var(--accent);background:none;border:none;cursor:pointer;padding:0;text-decoration:underline;">v2.3.0</button>
+    <button onclick="openChangelog()" style="font-size:10px;font-family:var(--mono);color:var(--accent);background:none;border:none;cursor:pointer;padding:0;text-decoration:underline;">v2.4.0</button>
     <span style="font-size:10px;font-family:var(--mono);color:var(--text3);">2026-04-02 BST</span>
   </div>
 </div>
@@ -567,46 +557,36 @@ html.dark .cat-btn.braindump { background: var(--bg3); }
 
   <div class="greeting">
     <div class="greeting-date" id="greetingDate"></div>
-    <div class="greeting-text">Empty your mind, <span class="accent">Greg.</span></div>
+    <div class="greeting-text" id="greetingText"><span class="accent">Greg.</span></div>
   </div>
 
   <!-- TEXT MODE -->
   <div id="text-mode">
-    <div class="text-layout">
-
-      <div class="text-left">
-        <div class="board-wrap">
-          <button class="board-btn active" data-board="backlog"   onclick="setBoard(this)">Backlog</button>
-          <button class="board-btn"        data-board="today"     onclick="setBoard(this)">Today</button>
-          <button class="board-btn"        data-board="this-week" onclick="setBoard(this)">This Week</button>
-        </div>
-        <div class="input-wrap">
-          <textarea class="task-input" id="taskInput" rows="1"
-            placeholder="What needs doing…"
-            onkeydown="handleKey(event)"
-            oninput="autoResize(this)"></textarea>
-        </div>
-      </div>
-
-      <div class="text-right">
-        <div class="grid-label">→ tap a category to send</div>
-        <div class="cat-grid">
-          <button class="cat-btn" data-cat="Health"                onclick="sendTask(this)"><span class="cat-emoji">🏥</span>Health</button>
-          <button class="cat-btn" data-cat="Investments"           onclick="sendTask(this)"><span class="cat-emoji">📈</span>Investments</button>
-          <button class="cat-btn" data-cat="Personal Learning"     onclick="sendTask(this)"><span class="cat-emoji">🎓</span>Personal Learning</button>
-          <button class="cat-btn" data-cat="Home"                  onclick="sendTask(this)"><span class="cat-emoji">🏠</span>Home</button>
-          <button class="cat-btn" data-cat="Admin Personal"        onclick="sendTask(this)"><span class="cat-emoji">🗂</span>Admin Personal</button>
-          <button class="cat-btn" data-cat="Admin Shared"          onclick="sendTask(this)"><span class="cat-emoji">🤝</span>Admin Shared</button>
-          <button class="cat-btn" data-cat="Returns"               onclick="sendTask(this)"><span class="cat-emoji">📦</span>Returns</button>
-          <button class="cat-btn" data-cat="numeri.ch"             onclick="sendTask(this)"><span class="cat-emoji">🇨🇭</span>numeri.ch</button>
-          <button class="cat-btn" data-cat="öpfinder"              onclick="sendTask(this)"><span class="cat-emoji">💡</span>öpfinder</button>
-          <button class="cat-btn" data-cat="Tech Projects"         onclick="sendTask(this)"><span class="cat-emoji">🛠</span>Tech Projects</button>
-          <button class="cat-btn" data-cat="Residents Association" onclick="sendTask(this)"><span class="cat-emoji">🏢</span>Residents Assoc.</button>
-          <button class="cat-btn" data-cat="Friends & Family"      onclick="sendTask(this)"><span class="cat-emoji">👥</span>Friends & Family</button>
-          <button class="cat-btn braindump" data-cat="Braindump"   onclick="sendTask(this)"><span class="cat-emoji">🧠</span>Braindump</button>
-        </div>
-      </div>
-
+    <div class="board-wrap">
+      <button class="board-btn active" data-board="backlog"   onclick="setBoard(this)">Backlog</button>
+      <button class="board-btn"        data-board="today"     onclick="setBoard(this)">Today</button>
+      <button class="board-btn"        data-board="this-week" onclick="setBoard(this)">This Week</button>
+    </div>
+    <div class="input-wrap">
+      <input type="text" class="task-input" id="taskInput"
+        placeholder="What needs doing…"
+        onkeydown="handleKey(event)" />
+    </div>
+    <div class="grid-label">→ tap a category to send</div>
+    <div class="cat-grid">
+      <button class="cat-btn" data-cat="Health"                onclick="sendTask(this)"><span class="cat-emoji">🏥</span>Health</button>
+      <button class="cat-btn" data-cat="Investments"           onclick="sendTask(this)"><span class="cat-emoji">📈</span>Investments</button>
+      <button class="cat-btn" data-cat="Personal Learning"     onclick="sendTask(this)"><span class="cat-emoji">🎓</span>Personal Learning</button>
+      <button class="cat-btn" data-cat="Home"                  onclick="sendTask(this)"><span class="cat-emoji">🏠</span>Home</button>
+      <button class="cat-btn" data-cat="Admin Personal"        onclick="sendTask(this)"><span class="cat-emoji">🗂</span>Admin Personal</button>
+      <button class="cat-btn" data-cat="Admin Shared"          onclick="sendTask(this)"><span class="cat-emoji">🤝</span>Admin Shared</button>
+      <button class="cat-btn" data-cat="Returns"               onclick="sendTask(this)"><span class="cat-emoji">📦</span>Returns</button>
+      <button class="cat-btn" data-cat="numeri.ch"             onclick="sendTask(this)"><span class="cat-emoji">🇨🇭</span>numeri.ch</button>
+      <button class="cat-btn" data-cat="öpfinder"              onclick="sendTask(this)"><span class="cat-emoji">💡</span>öpfinder</button>
+      <button class="cat-btn" data-cat="Tech Projects"         onclick="sendTask(this)"><span class="cat-emoji">🛠</span>Tech Projects</button>
+      <button class="cat-btn" data-cat="Residents Association" onclick="sendTask(this)"><span class="cat-emoji">🏢</span>Residents Assoc.</button>
+      <button class="cat-btn" data-cat="Friends & Family"      onclick="sendTask(this)"><span class="cat-emoji">👥</span>Friends & Family</button>
+      <button class="cat-btn braindump" data-cat="Braindump"   onclick="sendTask(this)"><span class="cat-emoji">🧠</span>Braindump</button>
     </div>
   </div>
 
@@ -647,11 +627,11 @@ html.dark .cat-btn.braindump { background: var(--bg3); }
   <div class="status-weather" id="weatherDisplay"></div>
   <div class="status-clocks">
     <div class="clock-item">
-      <div class="clock-city">LDN</div>
+      <div class="clock-city">🇬🇧 London</div>
       <div class="clock-time" id="clockLondon">—</div>
     </div>
     <div class="clock-item">
-      <div class="clock-city">Europe</div>
+      <div class="clock-city">🇨🇭 Zurich</div>
       <div class="clock-time" id="clockEurope">—</div>
     </div>
   </div>
@@ -660,23 +640,30 @@ html.dark .cat-btn.braindump { background: var(--bg3); }
 <script>
 // ─── CONFIG ───────────────────────────────────────────────────
 const DEFAULT_WORKER = "https://rapid-frost-ae90.lgt-c0c.workers.dev";
-const VERSION = "2.3.0";
+const VERSION = "2.4.0";
 
 const CHANGELOG = [
+  { v: "2.4.0", date: "2026-04-02", notes: [
+    "Layout flipped: big single-line input at top, categories below",
+    "Bigger button icons (26px) and text (15px), taller buttons (64px)",
+    "55 greeting variations — different every refresh",
+    "Status bar: bigger font, flag emojis on clocks",
+    "Weather: sunset time added from wttr.in",
+    "4-column category grid on desktop",
+  ]},
   { v: "2.3.0", date: "2026-04-02", notes: [
-    "Desktop two-column layout — input left, categories right, fills 16:9",
-    "Category buttons: icon pinned left, text centred, coloured left border, lighter tinted background",
-    "Braindump is now a full-width spacebar at the bottom of the grid",
-    "Mobile: bigger text (16px input, 22px greeting), 2-column grid, larger buttons",
-    "Auto dark/light theme by time of day (dark 8pm–7am) — manual toggle overrides",
+    "Desktop two-column layout — input left, categories right",
+    "Category buttons: icon pinned left, text centred, coloured left border",
+    "Braindump is full-width spacebar; mobile 2-column grid",
+    "Auto dark/light theme by time of day (dark 8pm–7am)",
   ]},
   { v: "2.2.0", date: "2026-04-02", notes: [
-    "Brand redesign — light/dark mode toggle, system fonts (Inter/-apple-system)",
-    "Sharp blue #0047FF accent, CNAME for task.opfinder.ch (mic fix)",
+    "Brand redesign — light/dark mode toggle, system fonts",
+    "Sharp blue #0047FF accent, CNAME for task.opfinder.ch",
     "Full date header, London weather, Europe clock, last task persisted",
   ]},
-  { v: "2.1.0", date: "2026-04-02", notes: ["Groq llama-3.3-70b categorisation, better category descriptions"] },
-  { v: "2.0.0", date: "2026-04-02", notes: ["Voice pipeline working, Groq Whisper, shared pipeline, no duplicate functions"] },
+  { v: "2.1.0", date: "2026-04-02", notes: ["Groq llama-3.3-70b categorisation, better prompts"] },
+  { v: "2.0.0", date: "2026-04-02", notes: ["Voice pipeline working, Groq Whisper"] },
   { v: "1.0.0", date: "2026-04-01", notes: ["Initial build"] },
 ];
 
@@ -687,6 +674,64 @@ const CAT_COLORS = {
   "Tech Projects":"#C044D8","Residents Association":"#B89600",
   "Friends & Family":"#D43F8C","Braindump":"#6B7280"
 };
+
+const GREETINGS = [
+  "Empty your mind, <span class='accent'>Greg.</span>",
+  "What's on your mind, <span class='accent'>Greg?</span>",
+  "Fire away, <span class='accent'>Greg.</span>",
+  "Let's get it all out, <span class='accent'>Greg.</span>",
+  "Brain dump time, <span class='accent'>Greg.</span>",
+  "What needs doing, <span class='accent'>Greg?</span>",
+  "Clear your head, <span class='accent'>Greg.</span>",
+  "What's cluttering your brain, <span class='accent'>Greg?</span>",
+  "Unload it all, <span class='accent'>Greg.</span>",
+  "What are you sitting on, <span class='accent'>Greg?</span>",
+  "Drop everything here, <span class='accent'>Greg.</span>",
+  "Talk to me, <span class='accent'>Greg.</span>",
+  "What's swirling around, <span class='accent'>Greg?</span>",
+  "Get it out of your head, <span class='accent'>Greg.</span>",
+  "List it. All of it, <span class='accent'>Greg.</span>",
+  "What can't you forget, <span class='accent'>Greg?</span>",
+  "No filter, just type, <span class='accent'>Greg.</span>",
+  "What's bugging you, <span class='accent'>Greg?</span>",
+  "Let's capture it all, <span class='accent'>Greg.</span>",
+  "Out of your head, into here, <span class='accent'>Greg.</span>",
+  "What's the next thing, <span class='accent'>Greg?</span>",
+  "Every task. Right now, <span class='accent'>Greg.</span>",
+  "Don't hold it in, <span class='accent'>Greg.</span>",
+  "What's been sitting in your head, <span class='accent'>Greg?</span>",
+  "Offload it all, <span class='accent'>Greg.</span>",
+  "What needs your attention, <span class='accent'>Greg?</span>",
+  "Type it. Own it, <span class='accent'>Greg.</span>",
+  "Your turn, <span class='accent'>Greg.</span>",
+  "What's on the list, <span class='accent'>Greg?</span>",
+  "Name it to tame it, <span class='accent'>Greg.</span>",
+  "Say it. Send it, <span class='accent'>Greg.</span>",
+  "What's keeping you busy, <span class='accent'>Greg?</span>",
+  "Capture it before it disappears, <span class='accent'>Greg.</span>",
+  "What do you need to remember, <span class='accent'>Greg?</span>",
+  "Drop the load, <span class='accent'>Greg.</span>",
+  "Sharpen up, <span class='accent'>Greg.</span>",
+  "What are you putting off, <span class='accent'>Greg?</span>",
+  "Own your day, <span class='accent'>Greg.</span>",
+  "Start the list, <span class='accent'>Greg.</span>",
+  "What's your move, <span class='accent'>Greg?</span>",
+  "Think → capture → done, <span class='accent'>Greg.</span>",
+  "Nothing left behind, <span class='accent'>Greg.</span>",
+  "Quick — before you forget, <span class='accent'>Greg.</span>",
+  "The brain is a bad to-do list, <span class='accent'>Greg.</span>",
+  "Keep nothing in your head, <span class='accent'>Greg.</span>",
+  "What's unresolved, <span class='accent'>Greg?</span>",
+  "Mind clear, list full — let's go, <span class='accent'>Greg.</span>",
+  "Every thought has a home here, <span class='accent'>Greg.</span>",
+  "Write it down, <span class='accent'>Greg.</span>",
+  "Zero mental overhead, <span class='accent'>Greg.</span>",
+  "What's orbiting your head, <span class='accent'>Greg?</span>",
+  "The clock's ticking, <span class='accent'>Greg.</span>",
+  "Ready when you are, <span class='accent'>Greg.</span>",
+  "What's the priority, <span class='accent'>Greg?</span>",
+  "Don't let it slip, <span class='accent'>Greg.</span>",
+];
 
 // ─── STATE ────────────────────────────────────────────────────
 let currentBoard  = "backlog";
@@ -713,14 +758,12 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 // ─── THEME ────────────────────────────────────────────────────
-// Auto-detect by time; manual toggle overrides for the session (saved to localStorage)
 function getAutoTheme() {
   const h = new Date().getHours();
   return (h >= 20 || h < 7) ? "dark" : "light";
 }
 
 function initTheme() {
-  // Use saved preference, or fall back to time-based auto
   const saved = localStorage.getItem("theme");
   applyTheme(saved || getAutoTheme(), false);
 }
@@ -743,6 +786,8 @@ function updateGreeting() {
   const n = new Date();
   document.getElementById("greetingDate").textContent =
     `${days[n.getDay()]}, ${n.getDate()} ${months[n.getMonth()]} ${n.getFullYear()} · LONDON`;
+  const pick = GREETINGS[Math.floor(Math.random() * GREETINGS.length)];
+  document.getElementById("greetingText").innerHTML = pick;
 }
 
 // ─── CLOCKS ───────────────────────────────────────────────────
@@ -761,21 +806,45 @@ async function fetchWeather() {
     if (!res.ok) return;
     const d  = await res.json();
     const cc = d.current_condition[0];
+    const tempC = cc.temp_C;
+    const desc  = cc.weatherDesc[0].value;
+    const emoji = weatherEmoji(desc);
+
+    // Sunset from today's astronomy data
+    let sunsetStr = "";
+    try {
+      const rawSunset = d.weather[0].astronomy[0].sunset; // e.g. "08:22 PM"
+      sunsetStr = " · 🌇 " + to24h(rawSunset);
+    } catch(e) {}
+
     document.getElementById("weatherDisplay").textContent =
-      weatherEmoji(cc.weatherDesc[0].value) + " " + cc.temp_C + "°C · London";
+      emoji + " " + tempC + "°C · London" + sunsetStr;
   } catch(e) {}
 }
+
+function to24h(str) {
+  // Convert "08:22 PM" → "20:22"
+  const m = str.match(/(\d+):(\d+)\s*(AM|PM)/i);
+  if (!m) return str;
+  let h = parseInt(m[1], 10);
+  const min = m[2];
+  const period = m[3].toUpperCase();
+  if (period === "PM" && h !== 12) h += 12;
+  if (period === "AM" && h === 12) h = 0;
+  return h.toString().padStart(2,"0") + ":" + min;
+}
+
 function weatherEmoji(desc) {
   const d = desc.toLowerCase();
-  if (d.includes("sunny") || d.includes("clear"))                        return "☀️";
-  if (d.includes("partly"))                                               return "⛅";
-  if (d.includes("overcast") || d.includes("cloudy"))                    return "☁️";
-  if (d.includes("thunder") || d.includes("storm"))                      return "⛈️";
-  if (d.includes("snow") || d.includes("blizzard"))                      return "❄️";
-  if (d.includes("sleet") || d.includes("ice"))                          return "🌨️";
+  if (d.includes("sunny") || d.includes("clear"))                          return "☀️";
+  if (d.includes("partly"))                                                 return "⛅";
+  if (d.includes("overcast") || d.includes("cloudy"))                      return "☁️";
+  if (d.includes("thunder") || d.includes("storm"))                        return "⛈️";
+  if (d.includes("snow") || d.includes("blizzard"))                        return "❄️";
+  if (d.includes("sleet") || d.includes("ice"))                            return "🌨️";
   if (d.includes("rain") || d.includes("drizzle") || d.includes("shower")) return "🌧️";
-  if (d.includes("fog") || d.includes("mist") || d.includes("haze"))    return "🌫️";
-  if (d.includes("wind"))                                                 return "💨";
+  if (d.includes("fog") || d.includes("mist") || d.includes("haze"))      return "🌫️";
+  if (d.includes("wind"))                                                   return "💨";
   return "🌤️";
 }
 
@@ -796,12 +865,8 @@ function setBoard(btn) {
 }
 
 // ─── INPUT ────────────────────────────────────────────────────
-function autoResize(el) {
-  el.style.height = "auto";
-  el.style.height = el.scrollHeight + "px";
-}
 function handleKey(e) {
-  if (e.key === "Enter" && !e.shiftKey) e.preventDefault();
+  if (e.key === "Enter") e.preventDefault();
 }
 
 // ─── TEXT MODE ────────────────────────────────────────────────
@@ -818,7 +883,6 @@ async function sendTask(btn) {
     setTimeout(() => btn.classList.remove("success-flash"), 600);
     setLastTask(`${title} → ${cat}`);
     input.value = "";
-    input.style.height = "auto";
     showToast(`✓ ${cat}`, "success");
   } catch (err) {
     btn.classList.remove("sending");
