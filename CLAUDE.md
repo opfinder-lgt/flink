@@ -1,18 +1,24 @@
 <!-- tower:start -->
+<!-- tower:stamp 23fbbd8fd3f7 -->
 # Managed by Tower
 Tasks, status, and blockers for this project live in the Tower MCP server
 ("tower"), not in files here.
 
-On session start: register_session("flink"), briefing("flink"), check_answers("flink").
+On session start: register_session("flink"), briefing("flink"),
+check_answers("flink", session_id). Keep the id register_session returns
+and pass it to every call that takes one — without it your answers are delivered
+to whichever session asks next, and you wait two hours for a sweep.
 Work loop: next_tasks -> claim_task -> implement -> complete_task.
 A task is not done until complete_task returns: a commit, a push or "done" in
 chat leaves it in_flight and claimed by you, and the next session cannot take
 it. If you cannot finish, update_task(status="queued") to put it back.
-Need the human? report_blocker(kind, body, command?) and continue with another
-task. Do not wait, and do not leave the request only in chat.
-Do not create or edit task.md/TODO files. Record reusable choices with
-record_decision; look for existing patterns with find_prior_art before
-building something a sibling project already solved.
+Need the human? report_blocker(kind, body, command?, session_id) and continue with
+another task. Do not wait, and do not leave the request only in chat.
+Do not create or edit task.md/TODO files. Prior art comes to you: claim_task
+lists the decisions this project and its siblings already recorded about work
+like yours — read them before rebuilding, and remember a sibling's ruling is
+not automatically yours. When a task settles a reusable choice, give
+complete_task a decision title and your result line becomes its body.
 
 Every project has a CHANGELOG.md and a version. Update the changelog under
 "## [Unreleased]" on every meaningful change, and bump the version on every
@@ -25,15 +31,30 @@ phone too, because most of the traffic is — and read the console.
 ## How to write a plan
 
 A brainstorm ends in one markdown file, and there are two doors onto the board.
-**Yours is `push_plan`.** It files the plan and stops: nothing in it is
-claimable until the owner has approved the parse on the dashboard, where he can
-see what was flagged as having no acceptance and untick what he does not want.
+**Yours is `push_plan`, and it normally puts the work straight on the board.**
+Auto-approval is ON unless it has been switched off for the fleet or for this
+project, so the usual answer is *"It is on the board already — N tasks claimable
+now. Nothing in it needed him."* Read what it returns: that sentence means you
+can claim the work yourself, in this session, right now.
+
+What it answers with may still NAME things it noticed — a task with no
+`Accept:`, a plan it displaced, a migration or a secret in your prose. Those are
+printed, not summarised, and under the built-in setting they do not hold
+anything: the work is claimable and the remarks are yours to act on. Add the
+missing `Accept:` lines and push again rather than filing a question about them.
+
+It is **held** for him in three cases only, and each is one where approving
+would be destructive or impossible: a batch heading that looks renamed, which
+would land its tasks a second time; a file nothing parsed as a task in; or a
+push from a session that is not registered to this project — so pass the
+`session_id` register_session gave you, and push only to your own project.
+(A project can also be switched to hold everything, which the answer says.) A
+held plan is a plan with something wrong in it, not the normal state.
+
 `tower import <file>` is the other door — **his**, at his own terminal — and it
 writes tasks straight onto the board with no approval step at all. Do not run
 it, and do not offer to run it for him: a session that imports has put its own
-work in his queue and told him afterwards. If `push_plan` will not take the
-plan, leave it in the file and report a blocker; a plan waiting for him is the
-normal state, not a failure to route around.
+work in his queue and told him afterwards.
 
 Any markdown parses; only this shape carries batches, acceptance and lanes:
 
@@ -57,6 +78,10 @@ of their own. `Accept:` comes last; everything from it to the end of that task
 is the acceptance criteria, and it is the only thing the work is checked
 against.
 
+A batch key belongs to its plan. Another plan's `B1` lands in a batch of its
+own, and pushing the same file again lands it where it landed before; to add
+to a batch already on the board, put `<!-- tower: join=B7 -->` on the heading.
+
 Order is dependency. Batches run in file order and tasks run in theirs, so a
 task that needs another's output goes after it and says so in its detail.
 `lane` names the surface a task touches, and it is **advisory**: nothing in
@@ -64,6 +89,20 @@ Tower enforces it. It is an optional filter on `next_tasks` and a signal the
 batch suggester scores with; `claim_task` does not read it, so two sessions
 CAN hold tasks in the same lane and collide. Put two tasks in different lanes
 when you mean them worked at once, and rely on the per-task claim — atomic, and
-enforced — for the part that must not go wrong. `priority=1` is urgent. Fenced code is
-illustration: a `- [ ]` inside a fence is never imported.
+enforced — for the part that must not go wrong.
+
+`priority=1` is urgent, and urgent does not mean first. **A task is ready when
+no earlier batch still has unfinished work. Priority orders the ready tasks; the
+unready ones keep plan order behind them, whatever their priority.** So marking a
+B2 task urgent moves it to the front of B2 and to the front of everything else
+that is ready — it does not move it ahead of B1. `priority` is a sentence about
+urgency; the order itself is a sentence about dependency, and one column cannot
+carry both.
+
+If the order is genuinely wrong — the plan put B2 after B1 and it did not need
+to — that is a defect in the plan, not something to route around. Say so with
+`report_blocker` and pick up something else; do not wait for the answer.
+Reordering a board is the owner's, from the dashboard.
+
+Fenced code is illustration: a `- [ ]` inside a fence is never imported.
 <!-- tower:end -->
